@@ -449,6 +449,29 @@ curl -s https://jsonplaceholder.typicode.com/users/1 | \
 
 **Validar que un JSON cumple el contrato:**
 
+> **Práctica aislada**: este archivo es solo para probar `jq` aquí mismo.
+> Aún no has creado el monorepo del curso (eso llega en la Lección 0.4).
+> Crea el archivo de prueba en una carpeta de práctica de tu usuario y
+> trabaja desde ahí. Es descartable: cuando quieras puedes borrarla con
+> `rm -rf ~/practica-json`.
+
+```bash
+mkdir -p ~/practica-json
+cat > ~/practica-json/transaccion-request.json << 'EOF'
+{
+  "billetera_id": "wallet_x1y2z3",
+  "monto": "1500.00",
+  "moneda": "MXN",
+  "tipo": "deposito",
+  "idempotency_key": "dep_unique_abc123"
+}
+EOF
+cd ~/practica-json
+```
+
+> El `cat > archivo << 'EOF'` (here-doc) te deja pegar contenido en un archivo
+> desde la terminal. Lo explicamos en detalle un poco más abajo.
+
 ```bash
 # ¿Existe la clave?
 jq 'has("billetera_id")' transaccion-request.json     # → true
@@ -476,6 +499,12 @@ valida cientos de veces. La forma profesional es un **script**: un archivo
 bash que aplica las reglas y termina con un *exit code* (código de salida)
 que otros scripts o tu CI pueden interpretar. Eso es exactamente lo que pide
 el Ejercicio 0.3.
+
+> **Práctica aislada**: el script también es descartable. Créalo en la misma
+> carpeta de práctica `~/practica-json` en la que venías trabajando (si
+> reiniciaste la terminal, vuelve a entrar con `cd ~/practica-json`). No es
+> parte del monorepo del curso — en el Ejercicio 0.3 crearás tu propia versión
+> como entregable dentro de `parte0/ejercicios/`.
 
 **Paso 1 — Crear el archivo:**
 
@@ -771,6 +800,7 @@ git branch -M main
 
 # Crear estructura del monorepo
 mkdir -p parte0/ejercicios
+mkdir -p parte0/ejemplos
 mkdir -p parte0/scripts
 mkdir -p parte1/ejercicios
 mkdir -p parte1/soluciones
@@ -792,6 +822,29 @@ git commit -m "chore: inicializar monorepo del curso"
  create mode 100644 README.md
 ```
 
+**Para qué sirve cada carpeta:**
+
+```
+~/fsc-php-curso/
+├── .editorconfig
+├── README.md
+├── docs/
+│   └── images/     ← Diagramas de los ejercicios (Ejercicio 0.2)
+├── parte0/
+│   ├── ejercicios/ ← Entregables de los ejercicios: lo que se califica
+│   ├── ejemplos/   ← Práctica aislada de las lecciones (descartable, NO se entrega)
+│   └── scripts/    ← Scripts del curso (doctor.sh)
+└── parte1/
+    ├── ejercicios/
+    └── soluciones/
+```
+
+> **Regla para todo el curso**: si un ejemplo de una lección te pide crear
+> archivos, esos archivos van en `parte0/ejemplos/` (o una subcarpeta) y son
+> **descartables**. Los **entregables** de los ejercicios van SIEMPRE en
+> `parte0/ejercicios/`. Más adelante, el código del proyecto real vivirá en
+> las carpetas de cada parte (`parte2/`, `parte3/`, ...).
+
 ### Paso 5: Docker (para la Lección 0.2)
 
 ```bash
@@ -809,40 +862,56 @@ Docker Compose version v2.29.1
 
 ### Paso 6: Ejecutar el Verificador de Entorno
 
-El curso incluye un script que verifica todo automáticamente:
+El curso incluye un script que verifica todo automáticamente. El script es un
+**material del curso** que vive en `parte0/scripts/doctor.sh`:
+
+- Si estás trabajando **dentro del repositorio del curso**, ya está en su sitio.
+- Si creaste tu **propio monorepo** (Paso 4), cópialo desde el repositorio del
+  curso antes de ejecutarlo:
 
 ```bash
-# Desde la raíz del monorepo
+cp <ruta/al/repositorio/del/curso>/parte0/scripts/doctor.sh parte0/scripts/
+```
+
+Luego ejecútalo:
+
+```bash
+# Desde la raíz del monorepo (~/fsc-php-curso)
 bash parte0/scripts/doctor.sh
 ```
 
-**Salida esperada:**
+**Salida esperada** (los números y versiones dependen de TU máquina; lo que
+importa es que el veredicto final sea `READY`):
 
 ```
 ╔══════════════════════════════════════════════════════╗
 ║   FSC-PHP — Verificador de Entorno de Desarrollo    ║
 ╚══════════════════════════════════════════════════════╝
 
-  ✓ PHP: 8.3.12 (cumple requisito ≥8.3)
-  ✓ Composer: 2.7.8 (cumple requisito ≥2.7)
-  ✓ Symfony CLI: 7.2.3
+  ✓ PHP: 8.3.6 (cumple requisito ≥8.3)
+  ✓ Composer: 2.9.5 (cumple requisito ≥2.7)
+  ⚠ Symfony CLI: No encontrado. Instalar: https://symfony.com/download
+         (El curso puede usarse con solo PHP + Composer)
   ✓ Git: 2.43.0 (user: Juan Laguna <juan@ejemplo.com>)
-  ✓ Docker: 27.1.1 (daemon corriendo)
-  ✓ Docker Compose: 2.29.1
+  ✓ Docker: 29.1.3 (daemon corriendo)
+  ✓ Docker Compose: 5.1.1
+  ✓ Node.js: v20.20.2 (opcional, para docs)
 
 ═══════════════════════════════════════════════════════
-  Resumen: 5 verificados | 1 advertencias | 0 fallidos
+  Resumen: 6 verificados | 1 advertencias | 0 fallidos
 ═══════════════════════════════════════════════════════
   Veredicto: READY — Tu entorno está listo para el curso.
 
+  Siguiente paso: abre la Parte 0 y comienza la Lección 0.1
+
 --- Salida JSON ---
 {
-  "php": { "installed": true, "version": "8.3.12", "meets_requirement": true },
-  "composer": { "installed": true, "version": "2.7.8", "meets_requirement": true },
-  "symfony_cli": { "installed": true, "version": "7.2.3" },
+  "php": { "installed": true, "version": "8.3.6", "meets_requirement": true },
+  "composer": { "installed": true, "version": "2.9.5", "meets_requirement": true },
+  "symfony_cli": { "installed": false, "version": "not_found" },
   "git": { "installed": true, "version": "2.43.0", "configured": true },
-  "docker": { "installed": true, "version": "27.1.1", "running": true },
-  "docker_compose": { "installed": true, "version": "2.29.1" },
+  "docker": { "installed": true, "version": "29.1.3", "running": true },
+  "docker_compose": { "installed": true, "version": "5.1.1" },
   "verdict": "READY"
 }
 ```
@@ -920,15 +989,40 @@ TDD (Test-Driven Development) es el ciclo de:
 Veamos el ciclo TDD completo con un ejemplo simple. Crearemos una función
 que valida si un monto es positivo:
 
+> **Práctica aislada**: este ejemplo NO forma parte del proyecto real del
+> curso. Créalo en la carpeta de ejemplos de tu monorepo,
+> `~/fsc-php-curso/parte0/ejemplos/tdd-monto/`. Es descartable: puedes
+> borrarlo cuando quieras sin afectar nada.
+
+```bash
+# Desde la raíz de tu monorepo (~/fsc-php-curso)
+mkdir -p parte0/ejemplos/tdd-monto/tests/Unit
+mkdir -p parte0/ejemplos/tdd-monto/src/Domain
+cd parte0/ejemplos/tdd-monto
+
+# Instalar PHPUnit como dependencia de desarrollo (solo de este ejemplo)
+composer require --dev phpunit/phpunit
+```
+
+> Si `composer require` te pregunta algo, acepta los valores por defecto.
+> La instalación de Composer la verificaste en la Lección 0.4.
+
 ```php
 <?php
 // tests/Unit/MontoTest.php
 
 declare(strict_types=1);
 
+// La función que vamos a testear está en src/Domain/Monto.php (más abajo)
+require __DIR__ . '/../../src/Domain/Monto.php';
+
 // Importamos la clase TestCase de PHPUnit
 // Esta clase provee los métodos de aserción (assert*)
 use PHPUnit\Framework\TestCase;
+
+// PHPUnit 11 usa atributos PHP 8 para marcar tests y data providers:
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
 
 // PHPUnit 11 usa atributos PHP 8 en lugar de anotaciones docblock.
 // #[Test] marca un método como test ejecutable.
@@ -998,13 +1092,13 @@ $ ./vendor/bin/phpunit tests/Unit/MontoTest.php
 ```
 
 ```
-PHPUnit 11.3.0 by Sebastian Bergmann and contributors.
+PHPUnit 12.5.35 by Sebastian Bergmann and contributors.
 
-...                                                                 3 / 3 (100%)
+.....                                                               5 / 5 (100%)
 
 Time: 00:00.012, Memory: 6.14 MB
 
-OK (3 tests, 4 assertions)
+OK (5 tests, 5 assertions)
 ```
 
 ### Ejemplo: Código Implementado (después de TDD)
@@ -1094,6 +1188,7 @@ Antes de avanzar a la Parte 1, deberías tener:
     │   ├── 0.3-json-contract.md
     │   ├── 0.4-entorno-verificado.md
     │   └── 0.5-git-workflow.md
+    ├── ejemplos/    ← Práctica de las lecciones (descartable)
     └── scripts/
         └── doctor.sh
 ```
@@ -1109,6 +1204,10 @@ Los ejercicios consolidan lo aprendido. Cada uno tiene un entregable concreto.
 ### Ejercicio 0.1: Practicar Peticiones HTTP
 
 **Objetivo**: Familiarizarte con curl y los métodos HTTP.
+
+> **Ubicación**: este ejercicio es un **entregable**. Crea los archivos en la
+> carpeta de ejercicios de tu monorepo: `~/fsc-php-curso/parte0/ejercicios/`.
+> Todo lo que hagas aquí SÍ va a tu repositorio (haz commit al terminar).
 
 **Instrucciones**:
 
@@ -1127,9 +1226,9 @@ Los ejercicios consolidan lo aprendido. Cada uno tiene un entregable concreto.
 
 3. Guarda la respuesta en `respuesta-post.json`.
 
-4. Realiza un GET a `https://jsonplaceholder.typicode.com/users/1` y extrae
-   solo el campo `email` usando `jq` (instalar con `apt install jq` o
-   `brew install jq`).
+4. Realiza un GET a `https://jsonplaceholder.typicode.com/users/1`, guarda la
+   respuesta en `users.json` y extrae solo el campo `email` usando `jq`
+   (instalar con `apt install jq` o `brew install jq`).
 
 **Entregable**: Archivos `respuesta-get.json` y `respuesta-post.json` +
 comando con `jq` que extrae el email.
@@ -1155,6 +1254,11 @@ cat users.json | jq '.email'
 ### Ejercicio 0.2: Diagrama de Secuencia de un Depósito
 
 **Objetivo**: Visualizar el flujo de una transacción entre microservicios.
+
+> **Ubicación**: este ejercicio es un **entregable**. El diagrama va dentro de
+> tu monorepo en `~/fsc-php-curso/docs/images/` (la carpeta `docs/images/` ya
+> la creaste en la Lección 0.4, Paso 4). Todo lo que hagas aquí SÍ va a tu
+> repositorio (haz commit al terminar).
 
 **Instrucciones**:
 
@@ -1209,6 +1313,10 @@ sequenceDiagram
 
 **Objetivo**: Practicar la validación de contratos entre servicios.
 
+> **Ubicación**: este ejercicio es un **entregable**. Crea ambos archivos en la
+> carpeta de ejercicios de tu monorepo: `~/fsc-php-curso/parte0/ejercicios/`.
+> Todo lo que hagas aquí SÍ va a tu repositorio (haz commit al terminar).
+
 **Instrucciones**:
 
 1. Descarga e instala `jq` si no lo tienes:
@@ -1224,7 +1332,8 @@ sudo apt install jq
 sudo apt install jq
 ```
 
-2. Crea un archivo `transaccion-request.json` con este contenido:
+2. En la carpeta de ejercicios, crea un archivo `transaccion-request.json`
+   con este contenido:
 
 ```json
 {
@@ -1236,7 +1345,8 @@ sudo apt install jq
 }
 ```
 
-3. Escribe un script `validar-contrato.sh` que use `jq` para verificar:
+3. En la misma carpeta, escribe un script `validar-contrato.sh` que use `jq`
+   para verificar:
 
    a. Que `monto` sea un string (no un número)
    b. Que `moneda` tenga exactamente 3 caracteres
@@ -1245,9 +1355,9 @@ sudo apt install jq
 
 4. El script debe imprimir `CONTRATO VÁLIDO` o `CONTRATO INVÁLIDO: [razón]`.
 
-**Entregable**: Archivo `validar-contrato.sh` ejecutable.
+**Entregable**: Archivo `parte0/ejercicios/validar-contrato.sh` ejecutable.
 
-**Verificación**:
+**Verificación** (ejecuta desde `/tu/monorepo/parte0/ejercicios`):
 
 ```bash
 # Debe imprimir CONTRATO VÁLIDO
@@ -1264,19 +1374,27 @@ echo '{"monto": 1500, "moneda": "MXN", "tipo": "deposito", "billetera_id": "w1",
 
 **Objetivo**: Asegurar que tu entorno está correctamente configurado.
 
+> **Ubicación**: este ejercicio es un **entregable**. Ejecuta el verificador
+> desde la raíz de tu monorepo (`~/fsc-php-curso`) y guarda la evidencia en
+> `~/fsc-php-curso/parte0/ejercicios/`. Todo lo que hagas aquí SÍ va a tu
+> repositorio (haz commit al terminar).
+
 **Instrucciones**:
 
-1. Ejecuta el verificador de entorno:
+1. Ejecuta el verificador de entorno (desde `~/fsc-php-curso`):
 
 ```bash
 bash parte0/scripts/doctor.sh
 ```
 
-2. Si el veredicto es `READY`, toma una captura de pantalla de la salida.
+2. Si el veredicto es `READY`, toma una captura de pantalla de la salida y
+   guárdala en `parte0/ejercicios/evidencia-entorno.png` (o guarda la salida
+   completa en `parte0/ejercicios/evidencia-entorno.txt`).
 
 3. Si el veredicto es `NOT READY`, corrige los problemas e intenta de nuevo.
 
-**Entregable**: Captura de pantalla o copia del JSON de salida con `verdict: "READY"`.
+**Entregable**: Captura (`parte0/ejercicios/evidencia-entorno.png`) o copia del
+JSON de salida (`parte0/ejercicios/evidencia-entorno.txt`) con `"verdict": "READY"`.
 
 **Verificación**: El JSON debe tener `"verdict": "READY"`.
 
@@ -1288,10 +1406,16 @@ bash parte0/scripts/doctor.sh
 
 **Instrucciones**:
 
-1. Crea un directorio llamado `mi-primer-repo` e inicialízalo con Git:
+> **Práctica aislada**: este ejercicio NO crea un entregable del monorepo.
+> `mi-primer-repo` es un repositorio de práctica independiente: créalo en tu
+> carpeta de usuario (`~`), NUNCA dentro de `~/fsc-php-curso` ni de
+> `parte0/ejercicios/`. Cuando termines puedes borrarlo.
+
+1. Crea un directorio llamado `mi-primer-repo` en tu carpeta de usuario e
+   inicialízalo con Git:
 
 ```bash
-mkdir mi-primer-repo && cd mi-primer-repo
+mkdir ~/mi-primer-repo && cd ~/mi-primer-repo
 git init
 git branch -M main
 ```
@@ -1337,9 +1461,9 @@ if ($resultado === $esperado) {
 }
 ```
 
-5. Ejecuta el test y haz commit con el tipo `test`.
+6. Ejecuta el test y haz commit con el tipo `test`.
 
-6. Revisa el historial con `git log --oneline`.
+7. Revisa el historial con `git log --oneline`.
 
 **Entregable**: Historial de Git con al menos 3 commits con mensajes Convencionales.
 
