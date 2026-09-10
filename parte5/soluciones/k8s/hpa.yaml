@@ -1,0 +1,36 @@
+# k8s/hpa.yaml — Autoescalado horizontal
+#
+# HPA (HorizontalPodAutoscaler): observa las métricas de los pods y
+# ajusta el número de réplicas entre min y max.
+#
+#   CPU > 70% promedio → escala HACIA ARRIBA (hasta 10)
+#   CPU < 70% sostenido → escala HACIA ABAJO (mínimo 2)
+#
+# REQUISITO: el Deployment DEBE tener resources (lo tiene en
+# deployment.yaml) — sin metrics-server o sin requests el HPA no escala.
+#
+# Probar el escalado (terminal 2):
+#   kubectl run load --image=busybox --rm -it -n prestaflow \
+#     -- sh -c "while true; do wget -q -O- http://wallet-service/api/salud; done"
+#
+# Aplicar:
+#   kubectl apply -f k8s/hpa.yaml -n prestaflow
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: wallet-service
+  namespace: prestaflow
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: wallet-service
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70

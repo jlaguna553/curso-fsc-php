@@ -1,0 +1,24 @@
+# k8s/configmap.yaml — Config NO sensible del servicio
+#
+# CONFIGMAP: separa la configuración del código (Doce-Factor Apps).
+# Aquí va TODO lo que no es secreto: URLs, flags, defaults.
+#
+# Verlo aplicado:
+#   kubectl get cm wallet-config -n prestaflow -o yaml
+#
+# Aplicar:
+#   kubectl apply -f k8s/configmap.yaml -n prestaflow
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wallet-config
+  namespace: prestaflow
+data:
+  # Entorno de ejecución
+  APP_ENV: prod
+  # BD: "postgres" es el DNS del servicio postgres DENTRO del clúster
+  DATABASE_URL: postgresql://prestaflow:prestaflow_segura@postgres:5432/prestaflow
+  # Broker: "rabbitmq" es el DNS del servicio de mensajería
+  RABBITMQ_URL: amqp://prestaflow:prestaflow_segura@rabbitmq:5672
+  # Default de negocio del dominio
+  MONEDA_DEFAULT: MXN

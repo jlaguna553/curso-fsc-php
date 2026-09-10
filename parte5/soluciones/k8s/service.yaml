@@ -1,0 +1,27 @@
+# k8s/service.yaml — Ruta estable hacia los pods
+#
+# SERVICE: da una IP/DNS estable a un conjunto de pods que cambian
+# (los pods mueren y renacen; el Service no cambia).
+#
+#   Pod A (10.0.0.1:9000) ─┐
+#   Pod B (10.0.0.2:9000) ─┤→ Service wallet-service:80 → balancea
+#   Pod C (10.0.0.3:9000) ─┘
+#
+# Otros servicios del clúster lo llaman por DNS: http://wallet-service
+#
+# Aplicar:
+#   kubectl apply -f k8s/service.yaml -n prestaflow
+apiVersion: v1
+kind: Service
+metadata:
+  name: wallet-service
+  namespace: prestaflow
+spec:
+  # Selector → el Service enruta SOLO a los pods con este label
+  # (los mismos del Deployment).
+  selector:
+    app: wallet-service
+  ports:
+    - name: http
+      port: 80            # puerto que escuchan los demás servicios
+      targetPort: 9000    # puerto real del contenedor (php-fpm)

@@ -1,0 +1,85 @@
+<?php
+// src/Infrastructure/Tracing/TraceableCommandBus.php — Decorador del bus con Datadog
+//
+# PROBLEMA (Lección 5.2): si cada handler abre su propio span, el trace
+# queda lleno de spans "deposito.procesar", "retiro.procesar", ... sin
+# una vista común. Además duplicamos el boilerplate.
+#
+# SOLUCIÓN: un DECORADOR alrededor del bus. Cualquier comando que pase
+# por él queda envuelto en UN span con el nombre real de la clase.
+#
+#   CommandBus real (HandleTrait) ←─ TraceableCommandBus (este archivo)
+#        ↑                                   ↑
+#   lo inyecta cualquiera           los controllers inyectan ESTE
+#
+# El decorador compone el bus real (no lo extiende) y añade el span:
+#   - resource:  FQCN del comando (ej: RealizarDepositoCommand)
+#   - meta:      comando, billetera, usuario (si el mensaje los expone)
+#   - resultado: exito | error
+#
+# La extensión ddtrace es opcional en runtime: si DD_TRACE_ENABLED=false
+# las llamadas DD\trace_start_span() son no-op → los tests unitarios
+# (que no tienen la extensión) siguen funcionando.
+#
+# Uso (services.yaml):
+#   App\Infrastructure\Bus\CommandBus:
+#       class: App\Infrastructure\Tracing\TraceableCommandBus
+#       arguments: [ '@App\Infrastructure\Bus\CommandBus.inner' ]
+#   (o con decoración de bus mediante named autowiring)
+
+declare(strict_types=1);
+
+namespace App\Infrastructure\Tracing;
+
+use App\Infrastructure\Bus\CommandBus;
+
+/**
+ * Envuelve el command bus con un span Datadog por operación.
+ *
+ * Uso:
+ *   $resultado = $traceableBus->dispatch(new RealizarDepositoCommand(...));
+ */
+final class TraceableCommandBus
+{
+    public function __construct(private readonly CommandBus $inner)
+    {
+    }
+
+    /**
+     * Despacha el comando dentro de un span Datadog.
+     *
+     * @param object $comando El comando a ejecutar
+     *
+     * @return mixed Resultado del handler
+     */
+    public function dispatch(object $comando): mixed
+    {
+        $span = DD\trace_start_span();
+        $span->name = 'bus.dispatch.command';
+        $span->resource = $comando::class;
+        $span->meta['comando'] = $comando::class;
+
+        // Si el comando expone billeteraId()/usuarioId(), los aterrizamos
+        // en el span para filtrar traces por entidad.
+        if (method_exists($comando, 'billeteraId')) {
+            $span->meta['billetera'] = (string) $comando->billeteraId();
+        }
+        if (method_exists($comando, 'usuarioId')) {
+            $span->meta['usuario'] = (string) $comando->usuarioId();
+        }
+
+        try {
+            $resultado = $this->inner->dispatch($comando);
+            $span->meta['resultado'] = 'exito';
+
+            return $resultado;
+        } catch (\Throwable $e) {
+            $span->meta['resultado'] = 'error';
+            $span->meta['exception'] = $e->getMessage();
+            throw $e;
+        } finally {
+            // finally: el span se cierra SIEMPRE, incluso al relanzar
+            DD\trace_close_span();
+        }
+    }
+}

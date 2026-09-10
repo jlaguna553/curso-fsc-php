@@ -1,0 +1,15 @@
+# k8s/namespace.yaml — Aislamiento del ambiente PrestaFlow
+#
+# NAMESPACE: divide un clúster Kubernetes en ambientes lógicos.
+# Todo lo de PrestaFlow vive en "prestaflow": deployments, services,
+# configmaps, secrets… sin mezclarse con otras apps del clúster.
+#
+# Aplicar:
+#   kubectl apply -f k8s/namespace.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: prestaflow
+  labels:
+    app: prestaflow
+    environment: production

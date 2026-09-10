@@ -1,0 +1,67 @@
+# .github/workflows/cd.yml — ENTREGA en cada push a main
+#
+# CD (Continuous Delivery): construye la imagen de producción, la sube
+# a GHCR (GitHub Container Registry) y actualiza el Deployment en el
+# clúster Kind (patrón GitOps-lite para el curso).
+#
+# Flujo:
+#   push a main → build imagen prod (multi-stage, Lección 5.3)
+#               → push a ghcr.io/jlaguna553/curso-fsc-php/wallet-service
+#               → kubectl set image → rollout del Deployment
+#
+# En una empresa real el paso final apunta a AWS/GCP/Azure; aquí el
+# kubeconfig de Kind se guarda como Secret (KUBECONFIG_B64) en GitHub.
+name: CD
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # permite dispararlo a mano desde la UI de Actions
+
+env:
+  # Nombre de la imagen en el registry: ghcr.io/<owner>/<repo>/wallet-service
+  IMAGEN: ghcr.io/${{ github.repository }}/wallet-service
+
+jobs:
+  entregar:
+    runs-on: ubuntu-latest
+    # Permisos: leer el repo + escribir packages en GHCR
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      # 1. Código + Dockerfile.prod
+      - uses: actions/checkout@v4
+
+      # 2. Login en GitHub Container Registry con el token automático
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # 3. Build de la imagen de PRODUCCIÓN (multi-stage, sin tooling)
+      - name: Build imagen prod
+        run: docker build -t ${{ env.IMAGEN }}:${{ github.sha }} -t ${{ env.IMAGEN }}:latest -f docker/php-fpm/Dockerfile.prod .
+
+      # 4. Push al registry (tag commit + latest)
+      - name: Push a GHCR
+        run: |
+          docker push ${{ env.IMAGEN }}:${{ github.sha }}
+          docker push ${{ env.IMAGEN }}:latest
+
+      # 5. Deploy al clúster Kind (GitOps-lite)
+      #    BONO del ejercicio 5.8: requiere el Secret KUBECONFIG_B64
+      #    guardado en GitHub → Settings → Secrets and variables → Actions
+      #    Obtenlo localmente con:
+      #      base64 -w0 ~/.kube/config  (Linux) / base64 ~/.kube/config (macOS)
+      - name: Deploy a Kind
+        if: env.KUBECONFIG_B64 != ''
+        env:
+          KUBECONFIG_B64: ${{ secrets.KUBECONFIG_B64 }}
+        run: |
+          echo "$KUBECONFIG_B64" | base64 --decode > /tmp/kubeconfig
+          export KUBECONFIG=/tmp/kubeconfig
+          kubectl set image deployment/wallet-service wallet=${{ env.IMAGEN }}:${{ github.sha }} -n prestaflow
+          kubectl rollout status deployment/wallet-service -n prestaflow --timeout=120s

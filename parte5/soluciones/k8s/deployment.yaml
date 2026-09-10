@@ -1,0 +1,73 @@
+# k8s/deployment.yaml — Estado deseado del servicio de billeteras
+#
+# DEPLOYMENT: declara CÓMO debe verse el servicio: imagen, réplicas,
+# recursos, healthchecks. Kubernetes converge el clúster a este estado.
+#
+# Puntos clave (Lección 5.4):
+#   - readinessProbe: no manda tráfico al pod hasta que responde /api/salud
+#   - livenessProbe:  si el pod se cuelga, K8s lo reinicia
+#   - resources:      SIN recursos el HPA no puede escalar y un pod
+#                     puede comerse todo el nodo
+#   - envFrom:        la config NO sensible viene del ConfigMap
+#   - secretKeyRef:   APP_SECRET viene del Secret creado con kubectl
+#
+# Aplicar:
+#   kubectl apply -f k8s/deployment.yaml -n prestaflow
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wallet-service
+  namespace: prestaflow
+  labels:
+    app: wallet-service
+spec:
+  # Réplicas MÍNIMAS. El HPA (hpa.yaml) escala de 2 a 10 según CPU.
+  replicas: 2
+  selector:
+    matchLabels:
+      app: wallet-service
+  template:
+    metadata:
+      labels:
+        app: wallet-service
+    spec:
+      containers:
+        - name: wallet
+          image: wallet-service:prod
+          # Local: no volver a bajar la imagen si ya está en el nodo.
+          # En CI/CD real se usa Always (siempre la última de GHCR).
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9000   # puerto interno de php-fpm
+          env:
+            # Secret → se inyecta SOLO cuando existe (kubectl create secret)
+            - name: APP_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: wallet-secrets
+                  key: APP_SECRET
+          # Config no sensible → viene del ConfigMap completo
+          envFrom:
+            - configMapRef:
+                name: wallet-config
+          # Límites de recursos: obligatorios para que el HPA funcione
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          # Healthchecks sobre el endpoint de salud (Parte 1)
+          readinessProbe:
+            httpGet:
+              path: /api/salud
+              port: 9000
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /api/salud
+              port: 9000
+            initialDelaySeconds: 10
+            periodSeconds: 15
