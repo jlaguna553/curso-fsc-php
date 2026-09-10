@@ -25,3 +25,7 @@
 # Archivos grandes / binarios temporales
 *.sqlite
 *.log
+# Sitio web (Astro/Starlight)
+/web/node_modules/
+/web/dist/
+/web/.astro/

@@ -1,0 +1,117 @@
+/* Estilos custom del curso PrestaFlow — override de Starlight */
+/* Paleta fintech: azul profundo + acentos dorados/verdes */
+
+:root {
+  --sl-color-accent-low: #e6f0ff;
+  --sl-color-accent: #1a56db;
+  --sl-color-accent-high: #0e3a8c;
+  --sl-color-accent-shade: #1444a8;
+  --sl-color-bg: #ffffff;
+  --sl-color-bg-sidebar: #f8fafc;
+  --sl-color-text: #1e293b;
+  --sl-color-text-muted: #64748b;
+  --sl-color-nav-highlight: rgba(26, 86, 219, 0.08);
+
+  --sl-color-brand-light: #1a56db;
+  --sl-color-brand-dark: #60a5fa;
+
+  /* Badges e iconos de progreso */
+  --badge-fondo: #dbeafe;
+  --badge-texto: #1e40af;
+}
+
+/* Dark mode */
+[data-theme='dark'] {
+  --sl-color-accent-low: #172554;
+  --sl-color-accent: #60a5fa;
+  --sl-color-accent-high: #93c5fd;
+  --sl-color-accent-shade: #3b82f6;
+  --sl-color-bg: #0f172a;
+  --sl-color-bg-sidebar: #1e293b;
+  --sl-color-text: #f1f5f9;
+  --sl-color-text-muted: #94a3b8;
+  --sl-color-nav-highlight: rgba(96, 165, 250, 0.12);
+  --badge-fondo: #1e3a5f;
+  --badge-texto: #93c5fd;
+}
+
+/* Tipografía legible en español */
+:root {
+  --sl-font: 'Inter', system-ui, -apple-system, sans-serif;
+  --sl-font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+/* Hero de la landing */
+.hero-section {
+  text-align: center;
+  padding: 3rem 1rem;
+  background: linear-gradient(135deg, var(--sl-color-accent-low) 0%, transparent 60%);
+  border-radius: 1rem;
+  margin-bottom: 2rem;
+}
+
+.hero-section h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+}
+
+.hero-section .tagline {
+  font-size: 1.25rem;
+  color: var(--sl-color-text-muted);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Tarjetas de partes */
+.part-card {
+  border: 1px solid var(--sl-color-border);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  transition: box-shadow 0.2s, border-color 0.2s;
+  background: var(--sl-color-bg-sidebar);
+}
+
+.part-card:hover {
+  border-color: var(--sl-color-accent);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+[data-theme='dark'] .part-card:hover {
+  box-shadow: 0 4px 12px rgba(255,255,255,0.05);
+}
+
+.part-card h3 {
+  margin-top: 0 !important;
+}
+
+/* Badge de puntos */
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--badge-fondo);
+  color: var(--badge-texto);
+  vertical-align: middle;
+}
+
+/* Secciones de código con tabs */
+pre[class*='language-'] {
+  border-radius: 0.75rem;
+  font-size: 0.85rem;
+}
+
+/* Tablas de HTTP status */
+table {
+  font-size: 0.9rem;
+}
+
+/* Bloques mermaid centrados */
+.mermaid {
+  display: flex;
+  justify-content: center;
+  margin: 1.5rem 0;
+}
