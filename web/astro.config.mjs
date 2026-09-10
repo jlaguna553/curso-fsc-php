@@ -1,6 +1,22 @@
 import { defineConfig } from 'astro/config';
+import { readFileSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import starlight from '@astrojs/starlight';
 import mermaid from 'astro-mermaid';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+// Sidebar generado por scripts/migrate.mjs → sidebar.generated.json.
+// Garantiza que los enlaces coincidan exactamente con los archivos generados.
+function loadSidebar() {
+  try {
+    return JSON.parse(readFileSync(join(__dirname, 'sidebar.generated.json'), 'utf-8'));
+  } catch {
+    console.warn('⚠️  sidebar.generated.json no encontrado. Ejecuta: npm run migrate');
+    return [];
+  }
+}
 
 export default defineConfig({
   site: 'https://fsc-php.vercel.app',
@@ -20,14 +36,7 @@ export default defineConfig({
       social: [
         { icon: 'github', label: 'GitHub', href: 'https://github.com/jlaguna553/curso-fsc-php' },
       ],
-      sidebar: [
-        { label: 'Parte 0 — Infraestructura Base', autogenerate: { directory: 'parte0' } },
-        { label: 'Parte 1 — DDD y PHP Moderno', autogenerate: { directory: 'parte1' } },
-        { label: 'Parte 2 — Symfony y Arquitectura Hexagonal', autogenerate: { directory: 'parte2' } },
-        { label: 'Parte 3 — CQRS y Event-Driven Architecture', autogenerate: { directory: 'parte3' } },
-        { label: 'Parte 4 — Testing Profesional', autogenerate: { directory: 'parte4' } },
-        { label: 'Parte 5 — Observabilidad, K8s y CI/CD', autogenerate: { directory: 'parte5' } },
-      ],
+      sidebar: loadSidebar(),
       customCss: ['./src/styles/custom.css'],
       head: [
         {

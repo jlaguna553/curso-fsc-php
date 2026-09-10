@@ -9,7 +9,7 @@
  * - Añade frontmatter compatible con Starlight
  */
 
-import { readFileSync, writeFileSync, mkdirSync, readdirSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, rmSync, readdirSync, existsSync } from 'node:fs';
 import { join, basename, dirname, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -190,10 +190,220 @@ const PART_LABELS = {
   parte5: 'Parte 5 — Observabilidad, K8s y CI/CD'
 };
 
+// ─── Mapeo de soluciones por ejercicio ───
+// Cada clave es el ID del ejercicio (ej: "1.3") y el valor son rutas RELATIVAS
+// dentro de parteN/soluciones/ cuyo código se muestra en el <details> de ese ejercicio.
+const SOLUCIONES_MAP = {
+  parte1: {
+    '1.1': ['composer.json', 'phpunit.xml.dist', 'phpstan.neon', '.php-cs-fixer.dist.php', 'Makefile', 'tests/bootstrap.php'],
+    '1.2': ['src/Domain/Moneda.php'],
+    '1.3': ['src/Domain/Dinero.php', 'tests/Unit/Domain/DineroTest.php'],
+    '1.4': ['src/Domain/TipoMovimiento.php', 'src/Domain/Movimiento.php', 'tests/Unit/Domain/MovimientoTest.php'],
+    '1.5': ['src/Domain/Billetera.php', 'src/Domain/Exception/FondosInsuficientes.php', 'tests/Unit/Domain/BilleteraTest.php'],
+    '1.6': ['src/Controller/SaludController.php', 'public/index.php'],
+    '1.7': ['tests/Architecture/DominioPuroTest.php'],
+    '1.8': ['phpstan.neon', '.php-cs-fixer.dist.php', 'Makefile', 'phpunit.xml.dist'],
+    '1.9': [],
+    '1.10': [],
+  },
+  parte2: {
+    '2.1': ['docker-compose.yml', 'docker/php-fpm/Dockerfile', 'docker/php-fpm/php-fpm-pool.conf', 'docker/nginx/Dockerfile', 'docker/nginx/default.conf'],
+    '2.2': ['config/packages/doctrine.yaml', 'migrations/Version20260910000000.php', 'src/Infrastructure/Persistence/Doctrine/Type/UuidType.php', 'src/Infrastructure/Persistence/Doctrine/Mapping/BilleteraEntity.php'],
+    '2.3': ['src/Application/Service/CrearBilleteraService.php', 'src/Application/Service/RealizarDepositoService.php'],
+    '2.4': ['src/Controller/BilleteraController.php', 'config/packages/messenger.yaml'],
+    '2.5': ['tests/Integration/Repository/BilleteraRepositoryTest.php', 'src/Infrastructure/Repository/BilleteraRepository.php'],
+    '2.6': ['tests/Functional/BilleteraControllerTest.php'],
+    '2.7': ['src/Infrastructure/Repository/BilleteraRepository.php', 'src/Application/Service/RealizarDepositoService.php'],
+    '2.8': [],
+  },
+  parte3: {
+    '3.1': ['src/Message/Command/CrearBilleteraCommand.php', 'src/Message/Query/ObtenerBilleteraQuery.php', 'src/Message/Event/BilleteraCreadaEvent.php', 'src/Infrastructure/Bus/CommandBus.php', 'src/Infrastructure/Bus/QueryBus.php'],
+    '3.2': ['src/Application/CommandHandler/CrearBilleteraCommandHandler.php', 'src/Application/QueryHandler/ObtenerBilleteraQueryHandler.php'],
+    '3.3': ['config/packages/messenger.yaml', 'src/Infrastructure/Serializer/EventoSerializer.php'],
+    '3.4': ['config/packages/messenger.yaml'],
+    '3.5': ['src/Application/CommandHandler/RealizarDepositoCommandHandler.php', 'src/Controller/BilleteraController.php'],
+    '3.6': ['src/Domain/Repository/IdempotenciaRepository.php', 'src/Infrastructure/Repository/DoctrineIdempotenciaRepository.php', 'src/Application/Exception/BilleteraNoEncontrada.php'],
+    '3.7': ['loan-service/src/Infrastructure/EventosProcesadosRepository.php', 'loan-service/config/schema.sql'],
+    '3.8': ['loan-service/src/Application/EvaluadorElegibilidad.php', 'loan-service/src/Domain/ResultadoElegibilidad.php', 'loan-service/tests/EvaluadorElegibilidadTest.php'],
+  },
+  parte4: {
+    '4.1': [],
+    '4.2': ['tests/Unit/Domain/DineroDataProviderTest.php', 'tests/Unit/Domain/RetiroDataProviderTest.php'],
+    '4.3': ['tests/Unit/Application/DepositoConMocksTest.php'],
+    '4.4': ['behat.yml'],
+    '4.5': ['features/billetera.feature', 'features/bootstrap/FeatureContext.php'],
+    '4.6': ['phpunit.xml.dist'],
+    '4.7': ['infection.json5'],
+    '4.8': ['Makefile'],
+  },
+  parte5: {
+    '5.1': [], // logs estructurados: se aplican sobre la solución de la Parte 4
+    '5.2': ['src/Infrastructure/Tracing/TraceableCommandBus.php'],
+    '5.3': ['src/Infrastructure/Tracing/TraceableCommandBus.php', 'src/Infrastructure/Tracing/TraceableQueryBus.php'],
+    '5.4': ['docker/php-fpm/Dockerfile.prod'],
+    '5.5': ['k8s/namespace.yaml', 'k8s/deployment.yaml', 'k8s/service.yaml'],
+    '5.6': ['k8s/configmap.yaml', 'k8s/hpa.yaml'],
+    '5.7': ['.github/workflows/ci.yml'],
+    '5.8': ['.github/workflows/cd.yml'],
+  },
+};
+
 // ─── Utilidades ───
 
 function slugFromFilename(filename) {
   return basename(filename, extname(filename));
+}
+
+// Mismo algoritmo de slug que Starlight (para que las URLs del sidebar coincidan con los archivos).
+function starlightSlug(base) {
+  return base
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')   // quitar diacríticos
+    .replace(/[^\w\d -]/g, '')          // quitar puntuación (incluye puntos)
+    .replace(/_/g, '-')
+    .toLowerCase();
+}
+
+function pageUrl(parteName, filename) {
+  const base = basename(filename, '.md');
+  if (base === 'index') return `/${parteName}/`;
+  return `/${parteName}/${starlightSlug(base)}/`;
+}
+
+function slugifyTitle(title) {
+  return starlightSlug(title.trim().replace(/\s+/g, '-')).replace(/-{2,}/g, '-');
+}
+
+// Orden natural por número de ejercicio: 1.1, 1.2, …, 1.10 (no lexical)
+function byExerciseNumber(a, b) {
+  const ia = exerciseIdFromFile(a);
+  const ib = exerciseIdFromFile(b);
+  if (ia && ib && ia !== ib) {
+    const [pa, sa] = ia.split('.').map(Number);
+    const [pb, sb] = ib.split('.').map(Number);
+    return pa - pb || sa - sb;
+  }
+  return a.localeCompare(b);
+}
+
+// Extrae el ID de ejercicio de un archivo "X.Y-algo.md" → "X.Y"
+function exerciseIdFromFile(filename) {
+  const m = basename(filename, '.md').match(/^(\d+)\.(\d+)/);
+  return m ? `${m[1]}.${m[2]}` : null;
+}
+
+// Divide el README en secciones por encabezados nivel 2 (##). Devuelve intro
+// (contenido antes del primer ##) y una lista de secciones { heading, title, body }.
+function splitSections(content) {
+  const lines = content.split('\n');
+  const intro = [];
+  const sections = [];
+  let current = null;
+
+  for (const line of lines) {
+    const m = line.match(/^##\s+(.*)/);
+    if (m) {
+      if (current) sections.push(current);
+      current = { heading: line, title: m[1].trim(), body: [] };
+    } else if (current) {
+      current.body.push(line);
+    } else {
+      intro.push(line);
+    }
+  }
+  if (current) sections.push(current);
+  return { intro: intro.join('\n'), sections };
+}
+
+const LESSON_RE = /^(\d+)\.(\d+)\s+(.*)$/;
+const EXERCISES_RE = /ejercicios/i;                    // "## Ejercicios de la Parte 1", "## 🧪 Ejercicios…"
+const DROP_RE = /^(índice|siguiente paso)/i;           // navegación pura → se descarta
+const END_RE = /^(resumen|comandos?|autoevaluaci|contenido)/i; // contenido de cierre → a la overview
+
+function classifySection(section) {
+  const m = section.title.match(LESSON_RE);
+  if (m) return { type: 'lesson', id: `${m[1]}.${m[2]}`, numTitle: m[3].trim() };
+  if (EXERCISES_RE.test(section.title)) return { type: 'exercises' };
+  if (DROP_RE.test(section.title)) return { type: 'drop' };
+  if (END_RE.test(section.title)) return { type: 'end' };
+  return { type: 'other' };
+}
+
+// Ensambla lecciones a partir de las secciones. Las secciones 'end' (Resumen,
+// Comandos, Autoevaluación) van a la overview; 'exercises' corta el resto.
+function buildLessons(sections) {
+  const clsList = sections.map(classifySection);
+  const lessons = [];
+  const endMatter = [];
+  let cur = null;
+
+  for (let i = 0; i < sections.length; i++) {
+    const cls = clsList[i];
+    if (cls.type === 'lesson') {
+      if (cur) lessons.push(cur);
+      cur = {
+        id: cls.id,
+        numTitle: cls.numTitle,
+        title: `${cls.id} ${cls.numTitle}`,
+        body: sections[i].body,
+      };
+    } else if (cls.type === 'other') {
+      const block = [sections[i].heading, ...sections[i].body].join('\n');
+      // Sección suelta entre lecciones → se adjunta a la lección actual.
+      if (cur) cur.body.push(block);
+    } else if (cls.type === 'end') {
+      endMatter.push([sections[i].heading, ...sections[i].body].join('\n'));
+    } else if (cls.type === 'exercises') {
+      if (cur) lessons.push(cur);
+      cur = null;
+      break; // el resto del README son ejercicios (inline o tablas de links) → se omiten
+    }
+    // 'drop' → se ignora
+  }
+  if (cur) lessons.push(cur);
+  return { lessons, endMatter };
+}
+
+const SOLUTION_LANG = {
+  php: 'php', yaml: 'yaml', yml: 'yaml', json: 'json', json5: 'json5',
+  conf: 'nginx', sh: 'bash', feature: 'gherkin', sql: 'sql', xml: 'xml',
+  neon: 'yaml', env: 'bash', txt: 'text', md: 'markdown',
+};
+
+function langFromPath(path) {
+  const name = basename(path);
+  if (name === 'Makefile') return 'makefile';
+  if (name.startsWith('Dockerfile')) return 'dockerfile';
+  return SOLUTION_LANG[path.split('.').pop().toLowerCase()] || '';
+}
+
+// Genera un bloque <details> (colapsado) con el código de las soluciones.
+function generateSolutionDetails(solDir, files) {
+  let md = '\n<details>\n';
+  md += `<summary>🔍 Ver solución (${files.length} archivos)</summary>\n\n`;
+  for (const rel of files) {
+    const full = join(solDir, rel);
+    if (!existsSync(full)) {
+      console.log(`⚠️  falta archivo de solución: ${rel}`);
+      continue;
+    }
+    try {
+      const content = readFileSync(full, 'utf-8');
+      const lang = langFromPath(rel);
+      md += `**\`${rel}\`**\n\n\`\`\`${lang}\n${content}\n\`\`\`\n\n`;
+    } catch {
+      console.log(`⚠️  no se pudo leer: ${rel}`);
+    }
+  }
+  md += '</details>\n';
+  return md;
+}
+
+function appendSolutionsToFile(filePath, solDir, files) {
+  if (files.length === 0) return;
+  const details = generateSolutionDetails(solDir, files);
+  const existing = readFileSync(filePath, 'utf-8');
+  writeFileSync(filePath, existing.replace(/\s*$/, '') + '\n\n' + details);
 }
 
 function extractTitle(content) {
@@ -202,10 +412,17 @@ function extractTitle(content) {
 }
 
 function extractDescription(content) {
-  const bq = content.match(/^>\s+\*\*(.+?)\*\*/m);
-  if (bq) return bq[1].trim();
-  const bq2 = content.match(/^>\s+(.+)/m);
-  return bq2 ? bq2[1].trim() : '';
+  const lines = content.split('\n');
+  // Descripción = primer párrafo de blockquote con formato **Label**: texto
+  const start = lines.findIndex(l => /^>\s+\*\*[^*]+\*\*:/.test(l));
+  if (start === -1) return '';
+  const parts = [];
+  for (let i = start; i < lines.length; i++) {
+    const m = lines[i].match(/^>\s?(.*)$/);
+    if (!m || m[1] === '') break; // fin del párrafo blockquote
+    parts.push(m[1]);
+  }
+  return parts.join(' ').replace(/^\*\*[^*]+\*\*:\s*/, '').trim();
 }
 
 function replaceAsciiDiagrams(content) {
@@ -285,65 +502,99 @@ function migrateParte(parteName) {
   const srcDir = join(CURSO, parteName);
   const readme = join(srcDir, 'README.md');
   const ejerciciosDir = join(srcDir, 'ejercicios');
+  const solDir = join(srcDir, 'soluciones');
   const outDir = join(SRC, parteName);
 
   if (!existsSync(readme)) {
     console.log(`⚠️  ${parteName}/README.md no existe, saltando`);
-    return [];
+    return { meta: null, pages: 0 };
   }
 
+  // Limpiar salidas anteriores (100% generadas; evita archivos obsoletos por renombres)
+  rmSync(outDir, { recursive: true, force: true });
   mkdirSync(outDir, { recursive: true });
 
-  // Leer y migrar README
   let content = readFileSync(readme, 'utf-8');
   const title = extractTitle(content);
   const description = extractDescription(content);
   const order = PART_ORDER[parteName];
 
-  // Reemplazar diagramas ASCII
   content = replaceAsciiDiagrams(content);
 
-  // Quitar el H1 del título (Starlight lo pone del frontmatter)
-  content = content.replace(/^#\s+.+\n/m, '');
+  // Dividir el README en lecciones individuales
+  const { intro, sections } = splitSections(content);
+  const { lessons, endMatter } = buildLessons(sections);
 
-  const frontmatter = generateFrontmatter({
+  // ── index.md: overview (intro + secciones de cierre: Resumen, Comandos…) ──
+  let indexBody = intro.replace(/^#\s+.+\n/m, '').trim();
+  if (endMatter.length) indexBody += '\n\n' + endMatter.join('\n\n');
+
+  const indexFm = generateFrontmatter({
     title,
     description: description || `${PART_LABELS[parteName]} — Curso FSC-PHP PrestaFlow`,
-    sidebar: { order }
+    sidebar: { label: 'Overview', order }
+  });
+  writeFileSync(join(outDir, 'index.md'), indexFm + indexBody + '\n');
+  console.log(`✅ ${parteName}/index.md (overview)`);
+
+  // ── Lecciones individuales ──
+  const lessonMeta = [];
+  lessons.forEach((lesson, idx) => {
+    const fileName = `${lesson.id}-${slugifyTitle(lesson.numTitle)}.md`;
+    const fm = generateFrontmatter({
+      title: lesson.title,
+      sidebar: { label: lesson.title, order: idx + 1 }
+    });
+    const body = lesson.body.join('\n').trim();
+    writeFileSync(join(outDir, fileName), fm + body + '\n');
+    lessonMeta.push({ label: lesson.title, link: pageUrl(parteName, fileName) });
+    console.log(`✅ ${parteName}/${fileName}`);
   });
 
-  writeFileSync(join(outDir, 'index.md'), frontmatter + content);
-  console.log(`✅ ${parteName}/index.md`);
-
-  // Migrar ejercicios
-  const pages = [`${parteName}/index`];
-
+  // ── Ejercicios (páginas separadas + soluciones colapsadas) ──
+  const exerciseMeta = [];
   if (existsSync(ejerciciosDir)) {
     const files = readdirSync(ejerciciosDir)
       .filter(f => f.endsWith('.md'))
-      .sort();
+      .sort(byExerciseNumber);
 
-    files.forEach((file, idx) => {
+    files.forEach((file) => {
       const slug = slugFromFilename(file);
       let exContent = readFileSync(join(ejerciciosDir, file), 'utf-8');
       const exTitle = extractTitle(exContent);
       const exDesc = extractDescription(exContent);
-
-      // Quitar H1
       exContent = exContent.replace(/^#\s+.+\n/m, '');
 
       const exFm = generateFrontmatter({
         title: exTitle,
         description: exDesc,
-        sidebar: { label: exTitle, order: idx + 1 }
+        sidebar: { label: exTitle }
       });
 
-      writeFileSync(join(outDir, `${slug}.md`), exFm + exContent);
-      pages.push(`${parteName}/${slug}`);
+      const outPath = join(outDir, `${slug}.md`);
+      writeFileSync(outPath, exFm + exContent.trim() + '\n');
+
+      // Añadir soluciones del ejercicio (si el mapa las define)
+      const exId = exerciseIdFromFile(file);
+      const solFiles = (SOLUCIONES_MAP[parteName] || {})[exId] || [];
+      if (solFiles.length && existsSync(solDir)) {
+        appendSolutionsToFile(outPath, solDir, solFiles);
+      }
+
+      exerciseMeta.push({ label: exTitle, link: pageUrl(parteName, file) });
+      console.log(`✅ ${parteName}/${slug}.md`);
     });
   }
 
-  return pages;
+  const meta = {
+    key: parteName,
+    label: PART_LABELS[parteName],
+    lessonMeta,
+    exerciseMeta,
+    hasSolutions: existsSync(solDir),
+  };
+
+  return { meta, pages: 1 + lessonMeta.length + exerciseMeta.length };
 }
 
 // ─── Migrar soluciones como código referenciado ───
@@ -408,15 +659,35 @@ function migrateSoluciones(parteName) {
 
 console.log('🚀 Migrando curso FSC-PHP a Starlight...\n');
 
-const allPages = [];
 const partes = ['parte0', 'parte1', 'parte2', 'parte3', 'parte4', 'parte5'];
+const allParts = [];
+let totalPages = 0;
 
 for (const parte of partes) {
-  const pages = migrateParte(parte);
-  allPages.push(...pages);
+  const { meta, pages } = migrateParte(parte);
+  if (meta) allParts.push(meta);
+  totalPages += pages;
   migrateSoluciones(parte);
 }
 
-console.log(`\n✅ Migración completa: ${allPages.length} páginas generadas`);
+// ─── Generar sidebar.generated.json (consumido por astro.config.mjs) ───
+const sidebar = allParts.map(p => {
+  const items = [{ label: 'Overview', link: `/${p.key}/` }];
+  if (p.lessonMeta.length) {
+    items.push({ label: 'Lecciones', collapsed: false, items: p.lessonMeta });
+  }
+  if (p.exerciseMeta.length) {
+    items.push({ label: 'Ejercicios', collapsed: false, items: p.exerciseMeta });
+  }
+  if (p.hasSolutions) {
+    items.push({ label: 'Soluciones', link: `/${p.key}/soluciones/` });
+  }
+  return { label: p.label, items };
+});
+
+writeFileSync(join(ROOT, 'sidebar.generated.json'), JSON.stringify(sidebar, null, 2) + '\n');
+console.log('✅ sidebar.generated.json');
+
+console.log(`\n✅ Migración completa: ${totalPages} páginas generadas`);
 console.log(`📁 Contenido en: ${SRC}`);
 console.log('\nPara ejecutar: cd web && npm run dev');

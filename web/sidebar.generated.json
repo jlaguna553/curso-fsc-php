@@ -1,0 +1,464 @@
+[
+  {
+    "label": "Parte 0 — Infraestructura Base",
+    "items": [
+      {
+        "label": "Overview",
+        "link": "/parte0/"
+      },
+      {
+        "label": "Lecciones",
+        "collapsed": false,
+        "items": [
+          {
+            "label": "0.1 El Curso y la Plataforma PrestaFlow",
+            "link": "/parte0/01-el-curso-y-la-plataforma-prestaflow/"
+          },
+          {
+            "label": "0.2 HTTP: El Ciclo Petición/Respuesta",
+            "link": "/parte0/02-http-el-ciclo-peticionrespuesta/"
+          },
+          {
+            "label": "0.3 JSON como Contrato entre Microservicios",
+            "link": "/parte0/03-json-como-contrato-entre-microservicios/"
+          },
+          {
+            "label": "0.4 Entorno de Desarrollo",
+            "link": "/parte0/04-entorno-de-desarrollo/"
+          },
+          {
+            "label": "0.5 Git, TDD y el Flujo de Trabajo del Curso",
+            "link": "/parte0/05-git-tdd-y-el-flujo-de-trabajo-del-curso/"
+          }
+        ]
+      },
+      {
+        "label": "Ejercicios",
+        "collapsed": false,
+        "items": [
+          {
+            "label": "Ejercicio 0.1: Practicar Peticiones HTTP",
+            "link": "/parte0/01-http-requests/"
+          },
+          {
+            "label": "Ejercicio 0.2: Diagrama de Secuencia de un Depósito",
+            "link": "/parte0/02-sequence-diagram/"
+          },
+          {
+            "label": "Ejercicio 0.3: Validar un Contrato JSON",
+            "link": "/parte0/03-json-contract/"
+          },
+          {
+            "label": "Ejercicio 0.4: Verificar tu Entorno",
+            "link": "/parte0/04-entorno-verificado/"
+          },
+          {
+            "label": "Ejercicio 0.5: Flujo de Trabajo con Git",
+            "link": "/parte0/05-git-workflow/"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "label": "Parte 1 — DDD y PHP Moderno",
+    "items": [
+      {
+        "label": "Overview",
+        "link": "/parte1/"
+      },
+      {
+        "label": "Lecciones",
+        "collapsed": false,
+        "items": [
+          {
+            "label": "1.1 Primer Contacto con Symfony",
+            "link": "/parte1/11-primer-contacto-con-symfony/"
+          },
+          {
+            "label": "1.2 PHP 8.3 Esencial",
+            "link": "/parte1/12-php-83-esencial/"
+          },
+          {
+            "label": "1.3 Objetos de Valor de Dinero",
+            "link": "/parte1/13-objetos-de-valor-de-dinero/"
+          },
+          {
+            "label": "1.4 El Aggregate Billetera",
+            "link": "/parte1/14-el-aggregate-billetera/"
+          },
+          {
+            "label": "1.5 Puerta de Entrada: Controller y Health Check",
+            "link": "/parte1/15-puerta-de-entrada-controller-y-health-check/"
+          },
+          {
+            "label": "1.6 Tests de Arquitectura y Quality Gates",
+            "link": "/parte1/16-tests-de-arquitectura-y-quality-gates/"
+          }
+        ]
+      },
+      {
+        "label": "Ejercicios",
+        "collapsed": false,
+        "items": [
+          {
+            "label": "Ejercicio 1.1: Crear el Symfony Skeleton",
+            "link": "/parte1/11-symfony-skeleton/"
+          },
+          {
+            "label": "Ejercicio 1.2: Crear el Enum Moneda",
+            "link": "/parte1/12-enum-moneda/"
+          },
+          {
+            "label": "Ejercicio 1.3: Crear el Value Object Dinero (TDD)",
+            "link": "/parte1/13-dinero-vo/"
+          },
+          {
+            "label": "Ejercicio 1.4: Crear TipoMovimiento y Movimiento",
+            "link": "/parte1/14-tipo-movimiento/"
+          },
+          {
+            "label": "Ejercicio 1.5: Crear el Aggregate Billetera (TDD)",
+            "link": "/parte1/15-billetera/"
+          },
+          {
+            "label": "Ejercicio 1.6: SaludController",
+            "link": "/parte1/16-salud-controller/"
+          },
+          {
+            "label": "Ejercicio 1.7: Test de Arquitectura",
+            "link": "/parte1/17-architecture-test/"
+          },
+          {
+            "label": "Ejercicio 1.8: Quality Gates",
+            "link": "/parte1/18-quality-gates/"
+          },
+          {
+            "label": "Ejercicio 1.9: Commit con Conventional Commits",
+            "link": "/parte1/19-conventional-commits/"
+          },
+          {
+            "label": "Ejercicio 1.10: Documentar con README",
+            "link": "/parte1/110-readme/"
+          }
+        ]
+      },
+      {
+        "label": "Soluciones",
+        "link": "/parte1/soluciones/"
+      }
+    ]
+  },
+  {
+    "label": "Parte 2 — Symfony y Arquitectura Hexagonal",
+    "items": [
+      {
+        "label": "Overview",
+        "link": "/parte2/"
+      },
+      {
+        "label": "Lecciones",
+        "collapsed": false,
+        "items": [
+          {
+            "label": "2.1 Dockerización Profesional",
+            "link": "/parte2/21-dockerizacion-profesional/"
+          },
+          {
+            "label": "2.2 Configuración de Symfony y Dependency Injection",
+            "link": "/parte2/22-configuracion-de-symfony-y-dependency-injection/"
+          },
+          {
+            "label": "2.3 Doctrine ORM y Persistencia",
+            "link": "/parte2/23-doctrine-orm-y-persistencia/"
+          },
+          {
+            "label": "2.4 API REST: Controllers con Lógica Real",
+            "link": "/parte2/24-api-rest-controllers-con-logica-real/"
+          },
+          {
+            "label": "2.5 Arquitectura Hexagonal en la Práctica",
+            "link": "/parte2/25-arquitectura-hexagonal-en-la-practica/"
+          },
+          {
+            "label": "2.6 Tests de Integración y Funcionales",
+            "link": "/parte2/26-tests-de-integracion-y-funcionales/"
+          }
+        ]
+      },
+      {
+        "label": "Ejercicios",
+        "collapsed": false,
+        "items": [
+          {
+            "label": "Ejercicio 2.1: Crear Docker Compose",
+            "link": "/parte2/21-docker-compose/"
+          },
+          {
+            "label": "Ejercicio 2.2: Doctrine ORM y Migrations",
+            "link": "/parte2/22-doctrine-migrations/"
+          },
+          {
+            "label": "Ejercicio 2.3: Application Services",
+            "link": "/parte2/23-application-services/"
+          },
+          {
+            "label": "Ejercicio 2.4: API REST de Billeteras",
+            "link": "/parte2/24-api-rest/"
+          },
+          {
+            "label": "Ejercicio 2.5: Tests de Integración",
+            "link": "/parte2/25-integration-tests/"
+          },
+          {
+            "label": "Ejercicio 2.6: Tests Funcionales",
+            "link": "/parte2/26-functional-tests/"
+          },
+          {
+            "label": "Ejercicio 2.7: Arquitectura Hexagonal",
+            "link": "/parte2/27-architecture-hexagonal/"
+          },
+          {
+            "label": "Ejercicio 2.8: Pipeline CI con Docker",
+            "link": "/parte2/28-ci-docker/"
+          }
+        ]
+      },
+      {
+        "label": "Soluciones",
+        "link": "/parte2/soluciones/"
+      }
+    ]
+  },
+  {
+    "label": "Parte 3 — CQRS y Event-Driven Architecture",
+    "items": [
+      {
+        "label": "Overview",
+        "link": "/parte3/"
+      },
+      {
+        "label": "Lecciones",
+        "collapsed": false,
+        "items": [
+          {
+            "label": "3.1 CQRS: Commands, Queries y Events",
+            "link": "/parte3/31-cqrs-commands-queries-y-events/"
+          },
+          {
+            "label": "3.2 Symfony Messenger: los buses y su configuración",
+            "link": "/parte3/32-symfony-messenger-los-buses-y-su-configuracion/"
+          },
+          {
+            "label": "3.3 RabbitMQ: Exchanges, Colas y Dead Letter Queues",
+            "link": "/parte3/33-rabbitmq-exchanges-colas-y-dead-letter-queues/"
+          },
+          {
+            "label": "3.4 El loan-service: un microservicio worker",
+            "link": "/parte3/34-el-loan-service-un-microservicio-worker/"
+          },
+          {
+            "label": "3.5 Consistencia eventual y el patrón Outbox",
+            "link": "/parte3/35-consistencia-eventual-y-el-patron-outbox/"
+          }
+        ]
+      },
+      {
+        "label": "Ejercicios",
+        "collapsed": false,
+        "items": [
+          {
+            "label": "Ejercicio 3.1 — Commands y Queries (5 pts)",
+            "link": "/parte3/31-commands-queries/"
+          },
+          {
+            "label": "Ejercicio 3.2 — Handlers con HandleTrait (8 pts)",
+            "link": "/parte3/32-handlers/"
+          },
+          {
+            "label": "Ejercicio 3.3 — Configurar transporte RabbitMQ (6 pts)",
+            "link": "/parte3/33-transporte-rabbitmq/"
+          },
+          {
+            "label": "Ejercicio 3.4 — Topología de colas (6 pts)",
+            "link": "/parte3/34-topologia-colas/"
+          },
+          {
+            "label": "Ejercicio 3.5 — Publicar y consumir (10 pts)",
+            "link": "/parte3/35-publicar-consumir/"
+          },
+          {
+            "label": "Ejercicio 3.6 — Idempotencia del productor (7 pts)",
+            "link": "/parte3/36-idempotencia-productor/"
+          },
+          {
+            "label": "Ejercicio 3.7 — Idempotencia del consumidor (6 pts)",
+            "link": "/parte3/37-idempotencia-consumidor/"
+          },
+          {
+            "label": "Ejercicio 3.8 — Elegibilidad del loan-service (4 pts)",
+            "link": "/parte3/38-elegibilidad/"
+          }
+        ]
+      },
+      {
+        "label": "Soluciones",
+        "link": "/parte3/soluciones/"
+      }
+    ]
+  },
+  {
+    "label": "Parte 4 — Testing Profesional",
+    "items": [
+      {
+        "label": "Overview",
+        "link": "/parte4/"
+      },
+      {
+        "label": "Lecciones",
+        "collapsed": false,
+        "items": [
+          {
+            "label": "4.1 La pirámide de testing",
+            "link": "/parte4/41-la-piramide-de-testing/"
+          },
+          {
+            "label": "4.2 PHPUnit avanzado: Data Providers",
+            "link": "/parte4/42-phpunit-avanzado-data-providers/"
+          },
+          {
+            "label": "4.3 Test Doubles: Fakes, Stubs, Mocks y Spies",
+            "link": "/parte4/43-test-doubles-fakes-stubs-mocks-y-spies/"
+          },
+          {
+            "label": "4.4 Behat + Gherkin en español",
+            "link": "/parte4/44-behat-gherkin-en-espanol/"
+          },
+          {
+            "label": "4.5 Cobertura y Mutational Testing",
+            "link": "/parte4/45-cobertura-y-mutational-testing/"
+          }
+        ]
+      },
+      {
+        "label": "Ejercicios",
+        "collapsed": false,
+        "items": [
+          {
+            "label": "Ejercicio 4.1 — Pirámide aplicada (4 pts)",
+            "link": "/parte4/41-piramide/"
+          },
+          {
+            "label": "Ejercicio 4.2 — Data Providers (8 pts)",
+            "link": "/parte4/42-data-providers/"
+          },
+          {
+            "label": "Ejercicio 4.3 — Fake vs. Mock (8 pts)",
+            "link": "/parte4/43-test-doubles/"
+          },
+          {
+            "label": "Ejercicio 4.4 — Behat setup (7 pts)",
+            "link": "/parte4/44-behat-setup/"
+          },
+          {
+            "label": "Ejercicio 4.5 — Feature + Steps en español (8 pts)",
+            "link": "/parte4/45-feature-steps/"
+          },
+          {
+            "label": "Ejercicio 4.6 — Cobertura (7 pts)",
+            "link": "/parte4/46-cobertura/"
+          },
+          {
+            "label": "Ejercicio 4.7 — Mutational testing (10 pts)",
+            "link": "/parte4/47-mutation/"
+          },
+          {
+            "label": "Ejercicio 4.8 — Suite CI local (4 pts)",
+            "link": "/parte4/48-suite-ci-local/"
+          }
+        ]
+      },
+      {
+        "label": "Soluciones",
+        "link": "/parte4/soluciones/"
+      }
+    ]
+  },
+  {
+    "label": "Parte 5 — Observabilidad, K8s y CI/CD",
+    "items": [
+      {
+        "label": "Overview",
+        "link": "/parte5/"
+      },
+      {
+        "label": "Lecciones",
+        "collapsed": false,
+        "items": [
+          {
+            "label": "5.1 La trifecta de la observabilidad",
+            "link": "/parte5/51-la-trifecta-de-la-observabilidad/"
+          },
+          {
+            "label": "5.2 Datadog APM y spans personalizados",
+            "link": "/parte5/52-datadog-apm-y-spans-personalizados/"
+          },
+          {
+            "label": "5.3 Imagen de producción multi-stage",
+            "link": "/parte5/53-imagen-de-produccion-multi-stage/"
+          },
+          {
+            "label": "5.4 Kubernetes: desplegar PrestaFlow en un clúster",
+            "link": "/parte5/54-kubernetes-desplegar-prestaflow-en-un-cluster/"
+          },
+          {
+            "label": "5.5 CI/CD con GitHub Actions",
+            "link": "/parte5/55-cicd-con-github-actions/"
+          }
+        ]
+      },
+      {
+        "label": "Ejercicios",
+        "collapsed": false,
+        "items": [
+          {
+            "label": "Ejercicio 5.1 — Logs estructurados en el CommandHandler (5 pts)",
+            "link": "/parte5/51-logs-estructurados/"
+          },
+          {
+            "label": "Ejercicio 5.2 — Span personalizado Datadog en handlers (8 pts)",
+            "link": "/parte5/52-span-datadog/"
+          },
+          {
+            "label": "Ejercicio 5.3 — Decorador de bus con tracing (9 pts)",
+            "link": "/parte5/53-decorador-tracing/"
+          },
+          {
+            "label": "Ejercicio 5.4 — Dockerfile multi-stage de producción (6 pts)",
+            "link": "/parte5/54-dockerfile-prod/"
+          },
+          {
+            "label": "Ejercicio 5.5 — Manifiestos K8s: Namespace + Deployment + Service (8 pts)",
+            "link": "/parte5/55-k8s-basico/"
+          },
+          {
+            "label": "Ejercicio 5.6 — ConfigMap, Secret y HPA (6 pts)",
+            "link": "/parte5/56-configmap-secrets-hpa/"
+          },
+          {
+            "label": "Ejercicio 5.7 — Pipeline CI con GitHub Actions (5 pts)",
+            "link": "/parte5/57-ci-github-actions/"
+          },
+          {
+            "label": "Ejercicio 5.8 — Pipeline CD: build + push + deploy a Kind (5 pts)",
+            "link": "/parte5/58-cd-kubernetes/"
+          }
+        ]
+      },
+      {
+        "label": "Soluciones",
+        "link": "/parte5/soluciones/"
+      }
+    ]
+  }
+]
