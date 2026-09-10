@@ -44,10 +44,10 @@ const MERMAID_MAP = [
     // Parte 0: Ciclo HTTP completo
     search: 'Resuelve',
     mermaid: `sequenceDiagram
-    participant C as Cliente (curl)
+    participant C as "Cliente (curl)"
     participant DNS as DNS
-    participant TLS as TCP/TLS
-    participant S as Servidor (PHP)
+    participant TLS as "TCP/TLS"
+    participant S as "Servidor (PHP)"
 
     C->>DNS: 1. Resuelve "api.prestaflow"
     DNS-->>C: 2. Retorna IP
@@ -98,7 +98,7 @@ const MERMAID_MAP = [
   },
   {
     // Parte 3: Topología RabbitMQ
-    search: 'prestflow',
+    search: 'publica → exchange "prestaflow"',
     mermaid: `graph LR
     subgraph Wallet["wallet-service"]
         PUB["Publisher"]
@@ -127,19 +127,6 @@ const MERMAID_MAP = [
     style Q1 fill:#fef3c7,stroke:#d97706
     style Q2 fill:#fef3c7,stroke:#d97706
     style Q3 fill:#fef3c7,stroke:#d97706`
-  },
-  {
-    // Parte 4: Pirámide de testing (leo la segunda ocurrencia)
-    search: 'Unit (base, rápidos)',
-    mermaid: `graph TB
-    A["/< E2E (Behat) \\>\\n Lentos, pocos"]
-    B["/< Integration \\>\\n Medio"]
-    C["/< Unit (PHPUnit) \\>\\n Rápidos, muchos — BASE"]
-    A --- B
-    B --- C
-    style A fill:#fce7f3,stroke:#db2777
-    style B fill:#fef3c7,stroke:#d97706
-    style C fill:#dbeafe,stroke:#1a56db,stroke-width:2px`
   },
   {
     // Parte 5: Clúster K8s
@@ -222,22 +209,63 @@ function extractDescription(content) {
 }
 
 function replaceAsciiDiagrams(content) {
-  let result = content;
-  for (const { search, mermaid } of MERMAID_MAP) {
-    // Buscamos bloques de código sin lenguaje que contengan el patrón
-    const regex = new RegExp(
-      '```\\n([\\s\\S]*?' + escapeRegex(search) + '[\\s\\S]*?)```',
-      'g'
-    );
-    result = result.replace(regex, (_match, inner) => {
-      return `\`\`\`mermaid\n${mermaid}\n\`\`\``;
-    });
-  }
-  return result;
-}
+  const lines = content.split('\n');
+  const out = [];
+  let i = 0;
 
-function escapeRegex(str) {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  while (i < lines.length) {
+    const line = lines[i];
+    const trimmed = line.trim();
+
+    // Línea sin fence: copiar tal cual
+    if (!trimmed.startsWith('```')) {
+      out.push(line);
+      i++;
+      continue;
+    }
+
+    // Fence: extraer lenguaje ('' = bloque desnudo, candidato a diagrama)
+    const lang = trimmed.slice(3).trim();
+
+    // Buscar el fence de cierre de ESTE bloque (escaneo estado-consciente:
+    // nunca tratamos un fence de cierre ajeno como apertura)
+    let j = i + 1;
+    const blockLines = [];
+    let foundClose = false;
+    while (j < lines.length) {
+      if (lines[j].trim().startsWith('```')) {
+        foundClose = true;
+        break;
+      }
+      blockLines.push(lines[j]);
+      j++;
+    }
+
+    if (!foundClose) {
+      // Bloque sin cierre (final del archivo): copiar el resto tal cual
+      out.push(...lines.slice(i));
+      break;
+    }
+
+    // Solo bloques desnudos (sin lenguaje) son candidatos a diagrama ASCII
+    if (lang === '') {
+      const blockText = blockLines.join('\n');
+      const entry = MERMAID_MAP.find(({ search }) => blockText.includes(search));
+      if (entry) {
+        out.push('```mermaid');
+        out.push(entry.mermaid);
+        out.push('```');
+        i = j + 1; // saltar todo el bloque original
+        continue;
+      }
+    }
+
+    // Sin match: copiar el bloque completo verbatim (apertura + contenido + cierre)
+    out.push(line, ...blockLines, lines[j]);
+    i = j + 1;
+  }
+
+  return out.join('\n');
 }
 
 function generateFrontmatter({ title, description, sidebar, prev, next }) {
