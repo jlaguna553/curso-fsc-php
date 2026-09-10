@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  phpunit.xml.dist — Configuración COMPLETA de PHPUnit 11 (Parte 4)
+
+  Cambios respecto a la Parte 1:
+    1. Suites adicionales: bdd (Behat se ejecuta aparte), cobertura PCOV
+    2. failOnWarning/Strict: el mínimo de calidad es absoluto, no negociable
+    3. Requisito de etiqueta de cobertura para el dominio (requiere licencia)
+-->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         backupGlobals="false"
+         colors="true"
+         bootstrap="tests/bootstrap.php"
+         cacheDirectory=".phpunit.cache"
+         failOnRisky="true"
+         failOnWarning="true"
+         beStrictAboutTestsThatDoNotTestAnything="true"
+         beStrictAboutOutputDuringTests="true"
+         beStrictAboutTodoAnnotatedTests="true"
+         displayDetailsOnTestsThatTriggerDeprecations="true"
+         displayDetailsOnTestsThatTriggerNotices="true"
+         displayDetailsOnTestsThatTriggerWarnings="true">
+
+    <!--
+      testsuites: Agrupa los tests por capa (pirámide de testing).
+      SOLO incluimos directorios que existen en el árbol del proyecto.
+      Las suites Integration/Functional se activan cuando el alumno crea
+      esos directorios (ver "make test" del Makefile de la Parte 4):
+        ./vendor/bin/phpunit --testsuite unit          # capa 1: dominio+app
+        ./vendor/bin/phpunit --testsuite integration   # (cuando existan)
+        ./vendor/bin/phpunit --testsuite functional    # (cuando existan)
+        ./vendor/bin/phpunit --testsuite architecture  # (viene de la Parte 1)
+    -->
+    <testsuites>
+        <testsuite name="unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+
+        <testsuite name="architecture">
+            <directory>tests/Architecture</directory>
+        </testsuite>
+    </testsuites>
+
+    <!--
+      source.ts: Código candidato a medición de cobertura.
+      Solo medimos NUESTRO código (src/), nunca vendor.
+      include/unit: las 3 capas del proyecto.
+      Excluimos Kernel y la consola (código de bootstrap).
+    -->
+    <source>
+        <include>
+            <directory>src</directory>
+        </include>
+        <exclude>
+            <file>src/Kernel.php</file>
+        </exclude>
+    </source>
+
+    <!--
+      coverage: Reportes.
+      html: reporte navegable (abrir coverage/index.html)
+      text: resumen en consola con mostrarNoCubiertos para detectar huecos.
+    -->
+    <coverage>
+        <report>
+            <html outputDirectory="coverage"/>
+            <text outputFile="php://stdout" showUncoveredFiles="true" showOnlySummary="false"/>
+        </report>
+    </coverage>
+
+    <!--
+      extensions: Plugins de PHPUnit 11 (Symfony Bridge).
+    -->
+    <extensions>
+        <bootstrap class="Symfony\Bridge\PhpUnit\SymfonyTestsListener"/>
+    </extensions>
+
+    <!--
+      php: Variables de entorno del entorno de testing.
+    -->
+    <php>
+        <server name="APP_ENV" value="test"/>
+        <server name="KERNEL_CLASS" value="App\Kernel"/>
+        <server name="SHELL_VERBOSITY" value="-1"/>
+        <server name="SYMFONY_PHPUNIT_VERSION" value="11.3"/>
+        <env name="DATABASE_URL" value="pgsql://prestaflow:secret@127.0.0.1:5432/prestaflow_test"/>
+    </php>
+</phpunit>

@@ -1,0 +1,93 @@
+# config/packages/messenger.yaml — Buses CQRS + transporte RabbitMQ
+#
+# SYMFONY MESSENGER: el "correo interno" de la aplicación.
+# Toda comunicación entre capas pasa por uno de estos buses.
+
+framework:
+    messenger:
+        # ------------------------------------------------------------------
+        # BUSES: canales aislados con middlewares propios.
+        #
+        #   command.bus → escritura (Commands) → handlers mutan estado
+        #   query.bus   → lectura (Queries)   → handlers solo leen
+        #   event.bus   → notificación (Events) → enruta a RabbitMQ
+        #
+        # Middlewares por bus:
+        #   validate            → ejecuta Symfony Validator sobre el mensaje
+        #   doctrine_transaction → cada command corre dentro de una TX (commit/rollback)
+        # ------------------------------------------------------------------
+        default_bus: command.bus
+
+        buses:
+            command.bus:
+                middleware:
+                    - validate
+                    - doctrine_transaction
+
+            query.bus:
+                middleware:
+                    - validate
+
+            event.bus:
+                # allow_no_handlers: un evento puede publicarse sin que el
+                # productor tenga un handler local registrado (lo consume
+                # otro servicio). Sin esta opción, Symflony lanzaría error.
+                default_middleware: allow_no_handlers
+                middleware:
+                    - validate
+
+        # ------------------------------------------------------------------
+        # TRANSPORTS: destinos físicos de los mensajes.
+        #
+        #   events  → RabbitMQ (AMQP), exchange topic "prestaflow"
+        #   failed  → la cola de mensajes que fallaron (para reprocesar)
+        #
+        # RabbitMQ y la topología de colas se explican en la lección 3.3.
+        # ------------------------------------------------------------------
+        failure_transport: failed
+
+        transports:
+            events:
+                # DSN de AMQP. La URL se lee de .env (MESSENGER_TRANSPORT_DSN).
+                # Ejemplo: amqp://prestaflow:secret@rabbitmq:5672/%2f
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+
+                # Nuestro serializador custom (contrato JSON público).
+                serializer: App\Infrastructure\Serializer\EventoSerializer
+
+                options:
+                    # EXCHANGE: el "switch" que enruta mensajes a colas.
+                    exchange:
+                        name: prestaflow
+                        type: topic        # routing por prefijo: wallet.event.#
+                        durable: true      # sobrevive reinicios del broker
+                        auto_delete: false # no se borra al desconectar
+
+                    # Cola de mensajes del propio wallet-service.
+                    queues:
+                        wallet_events:
+                            binding_keys: ['wallet.event.#']
+                            durable: true
+
+                    # Routing key con la que se PUBLICAN los mensajes.
+                    # Debe coincidir con el patrón de binding (wallet.event.#).
+                    routing_key: wallet.event.transaccion
+
+                # Reintentos automáticos al CONSUMIR (no al publicar).
+                retry_strategy:
+                    max_retries: 3          # máximo 3 intentos
+                    delay_milliseconds: 2000 # espera base entre intentos
+                    multiplier: 3            # 2s → 6s → 18s (backoff exponencial)
+
+            # Transporte de mensajes que agotaron reintentos o fallaron.
+            failed:
+                dsn: 'doctrine://default?queue_name=failed'
+
+        # ------------------------------------------------------------------
+        # ROUTING: qué mensaje va a qué destino.
+        # ------------------------------------------------------------------
+        routing:
+            # Los EVENTOS no se manejan inline: se ENRUTAN a RabbitMQ.
+            # El consumidor (loan-service u otro worker) los procesa.
+            'App\Message\Event\BilleteraCreadaEvent': events
+            'App\Message\Event\TransaccionCompletadaEvent': events

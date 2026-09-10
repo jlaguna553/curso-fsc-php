@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  phpunit.xml.dist — Configuración de PHPUnit 11 para wallet-service
+
+  Este archivo define:
+  1. Qué directorios contiene tests
+  2. Qué directorios contiene el código fuente (para cobertura)
+  3. Variables de entorno para testing (base de datos de prueba)
+  4. Formato de los reportes de resultados
+-->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         backupGlobals="false"
+         colors="true"
+         bootstrap="tests/bootstrap.php"
+         failOnRisky="true"
+         failOnWarning="true"
+         beStrictAboutTestsThatDoNotTestAnything="true"
+         beStrictAboutOutputDuringTests="true"
+         beStrictAboutTodoAnnotatedTests="true"
+         displayDetailsOnTestsThatTriggerDeprecations="true"
+         displayDetailsOnTestsThatTriggerNotices="true"
+         displayDetailsOnTestsThatTriggerWarnings="true">
+
+    <!--
+      testsuites: Agrupa tests por categoría.
+      Cada testsuite puede ejecutarse independientemente:
+        ./vendor/bin/phpunit --testsuite unit
+        ./vendor/bin/phpunit --testsuite architecture
+    -->
+    <testsuites>
+        <!--
+          unit: Tests unitarios del dominio puro.
+          Estos tests NO dependen de base de datos ni HTTP.
+          Son los más rápidos (milisegundos) y ejecutamos más de estos.
+        -->
+        <testsuite name="unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+
+        <!--
+          architecture: Tests de arquitectura.
+          Verifican que el código cumple reglas estructurales
+          (ej: "el dominio no importa Symfony").
+        -->
+        <testsuite name="architecture">
+            <directory>tests/Architecture</directory>
+        </testsuite>
+    </testsuites>
+
+    <!--
+      source: Define de dónde viene el código fuente para medición de cobertura.
+      PHPUnit solo cuenta cobertura de código dentro de estos directorios.
+    -->
+    <source>
+        <include>
+            <directory>src</directory>
+        </include>
+    </source>
+
+    <!--
+      coverage: Configuración de reportes de cobertura.
+      html: genera un reporte visual en coverage/
+      text: muestra resumen en consola
+    -->
+    <coverage>
+        <report>
+            <html outputDirectory="coverage"/>
+            <text outputFile="php://stdout" showUncoveredFiles="false"/>
+        </report>
+    </coverage>
+
+    <!--
+      extensions: Plugins de PHPUnit 11.
+      Symfony PHPUnit Bridge registra extensiones para:
+      - Capurar errores de Symfony durante tests
+      - Deprecation warnings de Symfony
+    -->
+    <extensions>
+        <bootstrap class="Symfony\Bridge\PhpUnit\SymfonyTestsListener"/>
+    </extensions>
+
+    <!--
+     php: Configuración de runtime PHP para tests.
+      Definimos APP_ENV=test para que Symfony use la configuración de testing.
+      No necesitamos base de datos en tests unitarios, pero definimos
+      la variable para futuras tests de integración (Parte 2+).
+    -->
+    <php>
+        <server name="APP_ENV" value="test"/>
+        <server name="KERNEL_CLASS" value="App\Kernel"/>
+        <server name="SHELL_VERBOSITY" value="-1"/>
+        <server name="SYMFONY_PHPUNIT_VERSION" value="11.3"/>
+    </php>
+</phpunit>

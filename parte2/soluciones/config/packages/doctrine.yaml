@@ -1,0 +1,77 @@
+# config/packages/doctrine.yaml — Configuración de Doctrine ORM
+#
+# Doctrine ORM es el "Object-Relational Mapper" de Symfony.
+# Mapea entidades PHP → tablas de PostgreSQL.
+#
+# ¿Por qué ORM y no SQL directo?
+#   1. Portabilidad: cambiar de PostgreSQL a MySQL = cambiar config, no código
+#   2. Seguridad: Doctrine previene SQL injection automáticamente
+#   3. Productividad: object-oriented queries vs SQL string concatenation
+#   4. Migrations: Doctrine genera y ejecuta cambios de schema automáticamente
+#
+# Flujo de Doctrine:
+#   Entity PHP → Doctrine Metadata → SQL Query → PostgreSQL → Result Set → Entity PHP
+
+doctrine:
+    dbal:
+        # URL de conexión a la base de datos.
+        # Formato: postgresql://user:password@host:port/database?params
+        #
+        # DATABASE_URL es una variable de entorno (definida en docker-compose.yml).
+        # En desarrollo local: usar SQLite (sin Docker).
+        # En Docker: PostgreSQL via red interna.
+        #
+        #server_version: "16"  # Versión de PostgreSQL (Doctrine necesita saberlo
+        #                      # para generar SQL compatible)
+
+        # Configuración de profiling (solo en dev).
+        # profiling_collect_backtrace: incluir stack trace en queries lentas.
+        # Esto ayuda a encontrar QUÉ código ejecutó una query lenta.
+        profiling_collect_backtrace: "%kernel.debug%"
+
+    orm:
+        # auto_generate_proxy_classes: Doctrine genera "proxies" para lazy loading.
+        # En dev: true (regenerar cada request para ver cambios).
+        # En prod: false (usar proxies cacheados).
+        auto_generate_proxy_classes: true
+
+        # enable_lazy_ghost_objects: PHP 8.2+ feature.
+        # En lugar de proxies de Doctrine (que son clases generadas dinámicamente),
+        # usa "ghost objects" que son más ligeros y no requieren generación.
+        enable_lazy_ghost_objects: true
+
+        # naming_strategy: convención para nombres de tablas y columnas.
+        # UnderscoreNamingStrategy: Billetera → billetera, saldoActual → saldo_actual
+        # Este es el estándar en bases de datos relacionales.
+        naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
+
+        # auto_mapping: Doctrine detecta entidades automáticamente.
+        # Escanea src/ para encontrar clases con #[Entity].
+        auto_mapping: true
+
+        # Mappings: define DÓNDE buscar entidades y CÓMO mapearlas.
+        mappings:
+            App:
+                # is_bundle: false → las entidades NO vienen de un bundle.
+                # Son de nuestra aplicación.
+                is_bundle: false
+
+                # dir: directorio donde buscar entidades.
+                # %kernel.project_dir% es la raíz del proyecto (equivalente a __DIR__/../..).
+                dir: "%kernel.project_dir%/src"
+
+                # prefix: namespace de las entidades.
+                # Todas las entidades empiezan con App\.
+                prefix: "App\\"
+
+                # alias: alias para referenciar este mapping en queries DQL.
+                alias: App
+
+    # Configuración de\dbal/types: tipos personalizados.
+    # Doctrine no conoce tipos como "Money" o "UUID".
+    # Definimos tipos custom para que Doctrine los maneje correctamente.
+    dbal:
+        types:
+            # Tipo UUID: almacena identificadores únicos como strings.
+            # Doctrine necesita saber cómo convertir PHP → SQL y viceversa.
+            uuid: App\Domain\Type\UuidType

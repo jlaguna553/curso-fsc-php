@@ -1,0 +1,46 @@
+# config/packages/messenger.yaml — Configuración de Symfony Messenger
+#
+# Messenger es el componente de Symfony para mensajería asíncrona.
+# Implementa el patrón "Command/Event Bus":
+#   - Commands: acciones que el sistema debe ejecutar (CrearTransaccion)
+#   - Events: cosas que ya pasaron (TransaccionCreada)
+#
+# Transport: cómo se entregan los mensajes.
+#   - sync: ejecutar inmediatamente (mismo proceso, para testing)
+#   - amqp: enviar a RabbitMQ (asíncrono, para producción)
+#   - doctrine: guardar en base de datos (para retry manual)
+
+framework:
+    messenger:
+        # failures_transport: donde van los mensajes que fallan después de N reintentos.
+        # La "dead letter" queue: mensajes que nadie pudo procesar.
+        # En producción, un admin revisa esta cola manualmente.
+        failure_transport: failed
+
+        # Bus de transaccionalidad.
+        # transactional: si el handler falla, la transacción DB se revierte.
+        # Útil para commands que modifican la base de datos.
+        buses:
+            messenger.bus.default:
+                # default_middleware: middleware por defecto de Symfony Messenger.
+                # resolve_handler: resuelve qué handler procesa cada mensaje.
+                # doctrine_transaction: envuelve el handler en una transacción DB.
+                default_middleware:
+                    allow_no_senders: true
+
+        # transports: define cómo se entregan los mensajes.
+        transports:
+            # Transport "sync": ejecuta el handler inmediatamente.
+            # Útil para desarrollo y testing (no necesita RabbitMQ).
+            async: '%env(MESSENGER_TRANSPORT_DSN)%'
+
+            # Transport "failed": cola de mensajes fallidos.
+            # Doctrine: almacena en la tabla `messenger_messages`.
+            failed: 'doctrine://%env(DATABASE_URL)%'
+
+        # routing: define qué mensajes van a qué transport.
+        # Por defecto, todos van al transport "async".
+        # Si necesitas routing específico:
+        # routing:
+        #     'App\Message\CrearTransaccion': async
+        #     'App\Event\TransaccionCreada': async

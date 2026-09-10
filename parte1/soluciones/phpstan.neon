@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  phpstan.neon — Configuración de PHPStan para wallet-service
+
+  PHPStan es un analizador estático para PHP.
+  Analiza el código SIN ejecutarlo, detectando:
+    - Tipos incorrectos en argumentos/retorno
+    - Variables no definidas
+    - Llamadas a métodos que no existen
+    - Uso incorrecto de nullables
+    - Y muchos más...
+
+  Nivel 6 es nuestro estándar: cubre la mayoría de bugs comunes
+  sin ser tan estricto que genere falsos positivos constantes.
+-->
+includes:
+    # phpstan-symfony extiende PHPStan para entender mejor
+    # las convenciones de Symfony (services, containers, routing).
+    # Sin esto, PHPStan no sabe que $this->json() retorna JsonResponse.
+    - vendor/phpstan/phpstan-symfony/extension.neon
+
+parameters:
+    # Nivel de análisis: 0-11
+    # 0: casi nada
+    # 6: nuestro nivel estándar (buen balance)
+    # 11: máximo, muy estricto
+    level: 6
+
+    # Directorios a analizar.
+    # Si solo especificamos paths en la CLI (phpstan analyse src tests),
+    # este parámetro es ignorado. Pero sirve como documentación.
+    paths:
+        - src
+        - tests
+
+    # Ignorar errores específicos de Symfony.
+    # Symfony genera dinámicamente一些 clases (Router, Container)
+    # que PHPStan no puede analizar estáticamente.
+    ignoreErrors:
+        # Symfony genera clases de routing dinámicamente
+        - '#Method Symfony\\Bundle\\FrameworkBundle\\Controller\\AbstractController::[a-z]+\(\) invoked with \d+ parameters#'
+        # Symfony Container inyecta servicios automáticamente
+        - '#(Service|Parameter) "[^"]+" not found.#'
+
+    # No reportar errores de código de vendor.
+    # Solo analizamos nuestro código (src/ y tests/).
+    scanDirectories:
+        - vendor/symfony
+
+    # Permite que PHPStan analice archivos de test como código fuente.
+    # Sin esto, los mocks y stubs de PHPUnit generan falsos positivos.
+    treatPhpDocTypesAsCertain: false

@@ -1,0 +1,31 @@
+{
+    "name": "prestaflow/loan-service",
+    "description": "Worker que consume eventos de transacciones y evalúa elegibilidad de préstamos",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.3",
+        "ext-pdo": "*",
+        "php-amqplib/php-amqplib": "^3.7"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "LoanService\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "LoanService\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit --colors=always",
+        "consumir": "php bin/consumir.php"
+    },
+    "config": {
+        "sort-packages": true
+    }
+}

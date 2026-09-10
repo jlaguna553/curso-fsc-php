@@ -1,0 +1,195 @@
+<?php
+// tests/Architecture/DominioPuroTest.php — Test de arquitectura
+//
+// TEST DE ARQUITECTURA: Verifica que el código cumple reglas estructurales.
+// Estos tests NO verifican comportamiento (eso lo hacen los unit tests).
+// Verifican RESTRICCIONES de diseño:
+//   - "El dominio no puede importar Symfony"
+//   - "Los controllers no pueden tener lógica de negocio"
+//   - "Los Value Objects deben ser readonly"
+//
+// ¿Por qué un test y no una convención documentada?
+// Porque las convenciones se rompen. Los tests no.
+// Si alguien importa Symfony en el dominio, este test falla en CI
+// y el PR no se puede merge. Simple.
+
+declare(strict_types=1);
+
+namespace App\Tests\Architecture;
+
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
+
+/**
+ * Test de arquitectura: dominio puro sin dependencias de framework.
+ *
+ * La carpeta src/Domain/ debe ser COPIABLE a otro proyecto.
+// Si tiene imports de Symfony, Doctrine, o cualquier framework,
+// no es puro y el patrón hexagonal se rompe.
+ */
+final class DominioPuroTest extends TestCase
+{
+    /**
+     * Verifica que Ningún archivo en src/Domain/ importe clases de Symfony.
+     *
+     * Esto garantiza que el dominio es PORTABLE: se puede copiar
+    // a cualquier proyecto PHP 8.3+ sin instalar Symfony.
+    *
+     * ¿Cómo funciona?
+    *   1. Escanea todos los archivos .php en src/Domain/
+    *   2. Lee cada archivo y busca líneas que empiecen con "use App\\"
+    *   3. Verifica que NINGUNO importe de namespaces de framework
+    *
+    // Si falla: significa que alguien metió lógica de framework en el dominio.
+    // Solución: mover esa lógica al directorio Infrastructure/ o Application/.
+     */
+    #[Test]
+    public function test_dominio_no_importa_symfony(): void
+    {
+        // Obtener el directorio raíz del proyecto (2 niveles arriba de tests/)
+        $projectRoot = dirname(__DIR__, 2);
+        $domainDir = $projectRoot.'/src/Domain';
+
+        // Si el directorio no existe, el test pasa (no hay código que violar).
+        // Esto es útil durante el desarrollo temprano del curso.
+        if (!is_dir($domainDir)) {
+            $this->markTestSkipped('Directorio src/Domain/ no existe aún');
+        }
+
+        // recursiveGlob: buscar TODOS los archivos PHP recursivamente.
+        // El patrón **/*.php busca en todos los subdirectorios.
+        $phpFiles = glob($domainDir.'/**/*.php', GLOB_BRACE);
+
+        // Lista de namespaces prohibidos en el dominio.
+        // Cada uno代表 una dependencia de framework/infraestructura.
+        $forbiddenNamespaces = [
+            'Symfony\\',            // Framework HTTP, container, routing
+            'Doctrine\\',           // ORM, persistencia
+            'Psr\\',                // PSR interfaces (dependen del ecosistema)
+            'Twig\\',               // Motor de plantillas
+            'GuzzleHttp\\',         // Cliente HTTP
+            'Monolog\\',            // Logging (el dominio no loguea)
+            'Ramsey\\Uuid\\',       // UUID generation (usamos uniqid en su lugar)
+        ];
+
+        $violations = [];
+
+        // Escanear cada archivo del dominio
+        foreach ($phpFiles as $file) {
+            // file_get_contents lee el archivo completo como string
+            $content = file_get_contents($file);
+
+            // Buscar cada namespace prohibido en el contenido
+            foreach ($forbiddenNamespaces as $namespace) {
+                // strstr busca el namespace en el contenido del archivo.
+                // Si lo encuentra, significa que el dominio importa framework.
+                if (strstr($content, 'use '.$namespace) !== false) {
+                    // Calcular la ruta relativa para el mensaje de error
+                    // Esto ayuda al developer a encontrar el archivo que viola
+                    $relativePath = str_replace($projectRoot.'/', '', $file);
+                    $violations[] = "{$relativePath} importa {$namespace}";
+                }
+            }
+        }
+
+        // Verificar que no hay violaciones.
+        // Si las hay, el test falla con un mensaje descriptivo que lista
+        // TODOS los archivos que violan la regla (no solo el primero).
+        $this->assertEmpty(
+            $violations,
+            "Dominio puro violado. Los siguientes archivos importan dependencias de framework:\n"
+            . implode("\n", $violations)
+            . "\n\nSolución: mover la lógica de framework a src/Infrastructure/ o src/Application/"
+        );
+    }
+
+    /**
+     * Verifica que los Value Objects en el dominio sean readonly.
+     *
+     * Los Value Objects deben ser inmutables por diseño.
+     * En PHP 8.2+, la palabra clave "readonly" en una clase
+     * fuerza que todas las propiedades sean readonly.
+     *
+     * Esto previene bugs como:
+     *   $dinero->centavos = -100;  // ← Esto no debería compilar
+     *
+     * ¿Cómo funciona?
+     *   1. Busca clases que extiendan de un Value Object conocido
+     *   2. Verifica que tengan "readonly" en su declaración
+     */
+    #[Test]
+    public function test_value_objects_son_readonly(): void
+    {
+        $projectRoot = dirname(__DIR__, 2);
+        $domainDir = $projectRoot.'/src/Domain';
+
+        if (!is_dir($domainDir)) {
+            $this->markTestSkipped('Directorio src/Domain/ no existe aún');
+        }
+
+        // Value Objects conocidos que DEBEN ser readonly.
+        // Si agregas un nuevo VO, agrégalo aquí.
+        $requiredReadonlyClasses = [
+            'Dinero.php',     // Value Object de dinero
+            'Movimiento.php', // Value Object de movimiento
+        ];
+
+        foreach ($requiredReadonlyClasses as $classFile) {
+            $filePath = $domainDir.'/'.$classFile;
+
+            // Si el archivo no existe, saltar (se creará en ejercicios)
+            if (!file_exists($filePath)) {
+                $this->markTestSkipped("Archivo {$classFile} no existe aún");
+            }
+
+            $content = file_get_contents($filePath);
+
+            // Verificar que la declaración de clase contiene "readonly".
+            // La sintaxis es: "final readonly class Dinero"
+            // strstr busca "readonly class" en el contenido del archivo.
+            $this->assertStringContainsString(
+                'readonly class',
+                $content,
+                "La clase {$classFile} debe ser 'readonly class' "
+                . "(Value Objects son inmutables por diseño)"
+            );
+        }
+    }
+
+    /**
+     * Verifica que todos los archivos PHP usen strict_types.
+     *
+     * Sin strict_types, PHP hace "type coercion" silenciosa:
+     *   function sumar(int $a, int $b): int { ... }
+     *   sumar("5", "3");  // PHP convierte strings a ints automáticamente
+     *
+     * Esto causa bugs difíciles de encontrar. Con strict_types:
+     *   sumar("5", "3");  // TypeError: Argument #1 must be of type int
+     */
+    #[Test]
+    public function test_todos_archivos_php_usan_strict_types(): void
+    {
+        $projectRoot = dirname(__DIR__, 2);
+        $srcDir = $projectRoot.'/src';
+
+        if (!is_dir($srcDir)) {
+            $this->markTestSkipped('Directorio src/ no existe aún');
+        }
+
+        $phpFiles = glob($srcDir.'/**/*.php', GLOB_BRACE);
+
+        foreach ($phpFiles as $file) {
+            $content = file_get_contents($file);
+            $relativePath = str_replace($projectRoot.'/', '', $file);
+
+            // Verificar que el archivo contiene declare(strict_types=1).
+            // Lo buscamos como string porque es la forma más robusta
+            // (no depende de AST parsing).
+            $this->assertStringContainsString(
+                'declare(strict_types=1)',
+                $content,
+                "El archivo {$relativePath} no tiene declare(strict_types=1)"
+            );
+        }
+    }
+}

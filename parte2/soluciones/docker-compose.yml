@@ -1,0 +1,271 @@
+# docker-compose.yml — Orquestación de servicios para PrestaFlow
+#
+# Docker Compose define y ejecuta múltiples contenedores como un solo sistema.
+# Cada servicio se ejecuta en su propio contenedor (aislamiento total).
+#
+# Uso:
+#   docker compose up -d          → Iniciar todos los servicios
+#   docker compose down           → Detener y eliminar contenedores
+#   docker compose logs -f        → Ver logs en tiempo real
+#   docker compose exec php bash  → Shell dentro del contenedor PHP
+#   docker compose ps             → Ver estado de los servicios
+#
+# Red de servicios:
+#   ┌──────────┐     ┌──────────┐     ┌────────────┐     ┌──────────┐
+#   │  Nginx   │────▶│ PHP-FPM  │────▶│ PostgreSQL │     │ RabbitMQ │
+#   │  :80     │     │  :9000   │     │  :5432     │     │  :5672   │
+#   └──────────┘     └──────────┘     └────────────┘     │  :15672  │
+#                                                         └──────────┘
+
+# Versión del formato de docker-compose.yml.
+# "3.8" es la última estable y soporta todas las features que necesitamos.
+# IMPORTANTE: esta versión es del formato de archivo, NO de Docker Compose.
+version: '3.8'
+
+# Servicios: cada entrada define un contenedor independiente.
+services:
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # NGINX — Servidor web reverso
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Nginx recibe peticiones HTTP y las distribuye:
+  #   - Archivos estáticos: sirve directamente
+  #   - PHP: delega a PHP-FPM via FastCGI
+  nginx:
+    # build: construir la imagen desde un Dockerfile local.
+    # context: directorio raíz del build (donde está el Dockerfile).
+    # dockerfile: ruta al Dockerfile relativo al context.
+    build:
+      context: .
+      dockerfile: docker/nginx/Dockerfile
+
+    # ports: mapeo de puertos del contenedor al host.
+    # "8080:80" significa: puerto 8080 del host → puerto 80 del contenedor.
+    # En el host accedes a http://localhost:8080
+    # En Docker networking, otros contenedores acceden via "nginx:80"
+    ports:
+      - "8080:80"
+
+    # volumes: montar directorios del host dentro del contenedor.
+    # Esto permite editar archivos en tu editor y que los cambios
+    # se reflejen inmediatamente en el contenedor (sin rebuild).
+    #
+    # "../../:/app": monta la RAÍZ DEL MONOREPO en /app dentro del contenedor.
+    #   Esto permite que Nginx acceda al código fuente de Symfony.
+    #   El "../.." es porque el docker-compose.yml está en parte2/soluciones/.
+    #
+    # "./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf":
+    #   Monta nuestra configuración de Nginx sobre la configuración por defecto.
+    volumes:
+      - "../../:/app"
+      - "./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro"
+
+    # depends_on: Define el ORDEN de inicio de servicios.
+    # Nginx depende de PHP-FPM (no puede servir PHP sin él).
+    # Con healthcheck, espera a que PHP-FPM esté realmente listo.
+    depends_on:
+      php-fpm:
+        condition: service_healthy
+
+    # networks: red de Docker donde este servicio participa.
+    # Todos los servicios en la misma red se pueden comunicar por nombre.
+    # "prestaflow-net" es la red que definimos abajo.
+    networks:
+      - prestaflow-net
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # PHP-FPM — Runtime de PHP
+  # ═══════════════════════════════════════════════════════════════════════════
+  php-fpm:
+    build:
+      context: .
+      dockerfile: docker/php-fpm/Dockerfile
+
+    # environment: Variables de entorno para la aplicación.
+    # Symfony lee APP_ENV para determinar el entorno de ejecución.
+    # DATABASE_*: credenciales de conexión a PostgreSQL.
+    # MESSENGER_TRANSPORT_DSN: conexión a RabbitMQ (Parte 3).
+    environment:
+      APP_ENV: dev
+      APP_DEBUG: "1"
+      DATABASE_URL: "postgresql://prestaflow:prestaflow_secret@postgres:5432/prestaflow_wallet?serverVersion=16&charset=utf8"
+      MESSENGER_TRANSPORT_DSN: "amqp://guest:guest@rabbitmq:5672/%2f/messages"
+
+    # volumes: montar el código fuente para desarrollo.
+    # Sin esto, los cambios en tu editor no se reflejan en el contenedor.
+    volumes:
+      - "../../:/app"
+
+    # Health check: verificar que PHP-FPM está listo para recibir requests.
+    # healthcheck.cmd: comando que Docker ejecuta cada intervalo.
+    # Si el comando falla 3 veces, el servicio se marca como "unhealthy".
+    healthcheck:
+      test: ["CMD-SHELL", "php-fpm -t 2>/dev/null || exit 1"]
+      interval: 10s       # Ejecutar cada 10 segundos
+      timeout: 5s         # Timeout del comando (si tarda más, falla)
+      retries: 3          # Número de intentos antes de marcar unhealthy
+      start_period: 15s   # Período de gracia al iniciar (el servicio arranca lento)
+
+    networks:
+      - prestaflow-net
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # POSTGRESQL — Base de datos relacional
+  # ═══════════════════════════════════════════════════════════════════════════
+  # PostgreSQL es la base de datos principal para datos transaccionales.
+  # Version 16: última estable con soporte LTS hasta 2028.
+  postgres:
+    # image: usar imagen oficial de Docker Hub.
+    # "16-alpine": versión 16 en Alpine Linux (más ligero).
+    image: postgres:16-alpine
+
+    # environment: configuración de PostgreSQL.
+    # POSTGRES_DB: nombre de la base de datos a crear al iniciar.
+    # POSTGRES_USER: usuario administrador de la base de datos.
+    # POSTGRES_PASSWORD: contraseña del usuario administrador.
+    #   IMPORTANTE: NUNCA usar passwords débiles ni committing a Git.
+    #   En producción usar Docker Secrets o Vault.
+    environment:
+      POSTGRES_DB: prestaflow_wallet
+      POSTGRES_USER: prestaflow
+      POSTGRES_PASSWORD: prestaflow_secret
+
+    # ports: exponer PostgreSQL al host para herramientas externas.
+    # "5433:5432": host usa 5433 para evitar conflicto con PostgreSQL local.
+    # Solo para desarrollo. En producción, PostgreSQL NO se expone externamente.
+    ports:
+      - "5433:5432"
+
+    # volumes: persistir datos del contenedor.
+    # Sin un volume, los datos se PERDERían al eliminar el contenedor.
+    # "pgdata:" es un named volume (Docker gestiona el almacenamiento).
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+    # Health check: verificar que PostgreSQL acepta conexiones.
+    # pg_isready es un tool de PostgreSQL que verifica si el servidor está listo.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U prestaflow -d prestaflow_wallet"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+    networks:
+      - prestaflow-net
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # RABBITMQ — Message Broker
+  # ═══════════════════════════════════════════════════════════════════════════
+  # RabbitMQ implementa el patrón "message broker":
+  #   - Los productores envían mensajes a "exchanges"
+  #   - Los exchanges routan mensajes a "queues"
+  #   - Los consumidores leen de las queues
+  #
+  # Esto desacopla servicios: el wallet-service no sabe quién consume
+  # sus eventos. Puede ser notification-service, audit-service, etc.
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+
+    # management: incluye la interfaz web en puerto 15672.
+    # Puedes acceder a http://localhost:15672 con guest/guest.
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+    # Exponer puertos:
+    #   5672: AMQP protocol (conexión de la aplicación)
+    #   15672: Management UI (interfaz web para monitorear)
+    #   15692: Prometheus metrics (para Datadog)
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+      - "15692:15692"
+
+    # Health check: verificar que RabbitMQ acepta conexiones AMQP.
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    networks:
+      - prestaflow-net
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # DATADOG AGENT — Observabilidad
+  # ═══════════════════════════════════════════════════════════════════════════
+  # El Datadog Agent recoge métricas, traces y logs de todos los contenedores.
+  # Se comunica con la plataforma Datadog (SaaS) para visualización y alertas.
+  #
+  # Para configuración local sin Datadog SaaS, usaramos logs estructurados
+  # y tracing personalizado que veremos en la Parte 5.
+  datadog-agent:
+    # Si no tienes cuenta de Datadog, puedes comentar este servicio.
+    # La aplicación funciona sin él; solo pierdes trazas y métricas.
+    image: datadog/agent:7
+
+    environment:
+      # DD_API_KEY: tu API key de Datadog.
+      # Si no tienes cuenta, usar "placeholder" para que el agente arranque.
+      DD_API_KEY: "${DD_API_KEY:-placeholder}"
+      # DD_SITE: región de Datadog (us1.datadoghq.com para EU, us3 para US)
+      DD_SITE: "datadoghq.com"
+      # DD_APM_ENABLED: habilitar APM (Application Performance Monitoring).
+      # Esto permite enviar traces desde la aplicación PHP.
+      DD_APM_ENABLED: "true"
+      # DD_LOGS_ENABLED: habilitar recopilación de logs.
+      DD_LOGS_ENABLED: "true"
+      # DD_APM_PORT: puerto donde el agente escucha traces.
+      # La aplicación PHP enviará traces a este puerto.
+      DD_APM_PORT: "8126"
+      # DD_TRACE_AGENT_URL: URL del agente para traces.
+      DD_TRACE_AGENT_URL: "http://datadog-agent:8126"
+
+    # ports: exponer el puerto de APM para traces externos.
+    # La aplicación PHP se conecta a este puerto para enviar traces.
+    ports:
+      - "8126:8126"   # APM traces
+      - "8125:8125/udp" # DogStatsD (métricas custom)
+
+    # volumes: montar el socket de Docker para recoger logs de contenedores.
+    # /var/run/docker.sock: socket de Docker (el agente detecta nuevos contenedores).
+    # /proc/: información de procesos del host.
+    # /sys/: información del kernel.
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc/:/host/proc/:ro
+      - /sys/:/host/sys/:ro
+      - /etc/passwd:/etc/passwd:ro
+
+    # El agente necesita permisos de root para acceder a /proc y /sys.
+    # En producción, usar capabilities específicas en lugar de full root.
+    user: root
+
+    networks:
+      - prestaflow-net
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# VOLUMES PERSISTENTES
+# ═══════════════════════════════════════════════════════════════════════════════
+# Los named volumes persisten datos más allá del ciclo de vida de los contenedores.
+# Si ejecutas `docker compose down`, los datos NO se pierden.
+# Si ejecutas `docker compose down -v`, SÍ se pierden.
+volumes:
+  pgdata:
+    # driver: motor de almacenamiento.
+    # local: almacenamiento local del host (default).
+    # En producción: usar nfs, ebs, o云 storage.
+    driver: local
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# REDES
+# ═══════════════════════════════════════════════════════════════════════════════
+# Las redes definen qué servicios pueden comunicarse entre sí.
+# Todos los servicios en la misma red se resuelven por NOMBRE de servicio.
+# Ejemplo: PHP-FPM se conecta a PostgreSQL usando "postgres:5432"
+# (no necesita IP, Docker resuelve el nombre al contenedor).
+networks:
+  prestaflow-net:
+    driver: bridge
+    # bridge: red aislada del host. Los contenedores solo ven otros contenedores
+    # en la misma red. Más seguro que "host" (comparte la red del host).

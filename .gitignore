@@ -1,0 +1,27 @@
+# Dependencias (instalar con composer install)
+/vendor/
+
+# Entorno
+/.env
+/.env.local
+/.env.*.local
+
+# Caché de Symfony
+/var/cache/
+/var/log/
+/var/sessions/
+
+# Cobertura y reportes de test
+/coverage/
+/infection.log
+/phpunit.xml
+
+# IDE y SO
+/.idea/
+/.vscode/
+*.swp
+.DS_Store
+
+# Archivos grandes / binarios temporales
+*.sqlite
+*.log

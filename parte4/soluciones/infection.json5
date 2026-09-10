@@ -1,0 +1,37 @@
+{
+    // infection.json5 — Configuración de Infection (mutational testing)
+    //
+    // INFECTION: herramienta que MUTA tu código para probar TUS TESTS.
+    // Cambia operadores (== → !=), valores (1 → 0), condiciones, etc.
+    // y re-ejecuta la suite. Si un test NO detecta el cambio, hay un
+    // "mutante vivo" → ese código no está bien cubierto.
+    //
+    // MSI (Mutation Score Indicator): % de mutantes que tus tests mataron.
+    //   < 70% : los tests son débiles (cualquier refactor va a romper algo)
+    //   70-85%: aceptable para producción
+    //   85%+  : excelente (nuestro objetivo en este curso)
+    //
+    // Ejecuta con: ./vendor/bin/infection --show-mutations
+
+    // Dónde buscar código que mutar.
+    // Limitamos a src/Domain: el corazón del negocio (dinero, billeteras).
+    // Cuanto más código, más lenta la ejecución — Domain es el foco.
+    "source": {
+        "directories": ["src/Domain"]
+    },
+
+    // Logs de salida.
+    // "text": escribe un reporte humano-leíble de cada mutante en infection.log
+    "logs": {
+        "text": "infection.log"
+    },
+
+    // Umbral mínimo del MSI global.
+    // Si el MSI baja de 85%, Infection falla con exit code 1 (rompe CI).
+    // Así la pipeline NO deja avanzar con tests débiles.
+    "minMsi": 85,
+
+    // Umbral mínimo sobre el código CUBIERTO (ignora los mutantes que
+    // nacen en código sin tests — esos no pueden matarse por definición).
+    "minCoveredMsi": 90
+}

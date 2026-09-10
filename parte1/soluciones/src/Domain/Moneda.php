@@ -1,0 +1,103 @@
+<?php
+// src/Domain/Moneda.php — Enum de monedas soportadas
+//
+// ENUM (PHP 8.1+): Tipo nativo que reemplaza clases con constantes.
+// Un enum solo puede tener los casos definidos explícitamente.
+// Ventajas sobre constantes de clase:
+//   1. Type-safe: no puedes pasar "BTC" como moneda si no existe como caso
+//   2. Comparación directa: Moneda::MXN === Moneda::MXN (no strings)
+//   3. Métodos: puedes tener lógica en los enums
+//   4. Auto-completado: el IDE conoce todos los valores posibles
+//
+// ¿Por qué no usar strings "MXN", "USD", "EUR"?
+// Porque en fintech, una moneda inválida = error potencialmente catastrófico.
+// Un enum garantiza en tiempo de compilación que solo existen monedas válidas.
+
+declare(strict_types=1);
+
+namespace App\Domain;
+
+/**
+ * Monedas soportadas por PrestaFlow.
+ *
+ * Cada caso tiene:
+ *   - valor: código ISO 4217 de 3 letras (para APIs externas)
+ *   - decimales: precisiones decimales (MXN usa 2, pero crypto puede usar 8)
+ *   - nombre: nombre legible para humanos
+ *
+ * Nota: Usamos BackedEnum (string) porque:
+ *   1. El valor se serializa directamente a JSON
+//   2. Se puede guardar en base de datos como string
+//   3. Se puede comparar con strings de APIs externas
+ */
+enum Moneda: string
+{
+    // MXN: Peso mexicano. Moneda base de PrestaFlow.
+    // 2 decimales: 1 MXN = 100 centavos
+    case MXN = 'MXN';
+
+    // USD: Dolar estadounidense. Para transacciones internacionales.
+    case USD = 'USD';
+
+    // EUR: Euro. Para clientes europeos.
+    case EUR = 'EUR';
+
+    /**
+     * Retorna la cantidad de decimales para esta moneda.
+     *
+     * ¿Por qué no siempre 2? Porque algunas monedas (como BTC)
+     * usan más decimales. En nuestro caso todas usan 2, pero
+     * el método existe para futuras expansiones.
+     *
+     * @return int Número de decimales (2 para monedas fiat)
+     */
+    public function decimales(): int
+    {
+        // Todas las monedas fiat usan 2 decimales.
+        // Si en el futuro agregamos crypto, este método se extiende
+        // con un match: return match($this) { ... }
+        return 2;
+    }
+
+    /**
+     * Retorna el símbolo visual de la moneda.
+     *
+     * Útil para presentación en interfaces de usuario.
+     * En APIs siempre usamos el código ISO, no el símbolo.
+     *
+     * @return string Símbolo de la moneda
+     */
+    public function simbolo(): string
+    {
+        // Usamos match (PHP 8.0+) en lugar de switch.
+        // match es una expresión (retorna valor) y usa comparación estricta (===).
+        // El compilador verifica que todos los casos estén cubiertos.
+        return match ($this) {
+            self::MXN => '$',
+            self::USD => '$',
+            self::EUR => '€',
+        };
+    }
+
+    /**
+     * Busca una moneda por su código ISO.
+     *
+     * Método estático que actúa como factory: convierte un string
+     * a un enum. Si el string no corresponde a ningún caso,
+     * lanza una excepción.
+     *
+     * @param string $codigo Código ISO de 3 letras (ej: "MXN")
+     *
+     * @return self Instancia del enum
+     *
+     * @throws \ValueError Si el código no corresponde a una moneda soportada
+     */
+    public static function desdeCodigo(string $codigo): self
+    {
+        // from() es un método nativo de BackedEnum.
+        // Lanza \ValueError si el valor no existe como caso.
+        // Lo encapsulamos en nuestro método para dar un mensaje
+        // más descriptivo al desarrollador.
+        return self::from(strtoupper($codigo));
+    }
+}

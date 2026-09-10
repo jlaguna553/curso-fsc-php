@@ -1,0 +1,43 @@
+# EditorConfig — formato consistente para todo el curso
+# https://editorconfig.org
+
+# Archivo raíz del curso
+root = true
+
+# Estilo por defecto para todos los archivos
+[*]
+indent_style = space              # Espacios, nunca tabs
+indent_size = 4                   # 4 espacios para PHP, YAML, etc.
+end_of_line = lf                  # Saltos de línea Unix (consistencia cross-platform)
+charset = utf-8                   # UTF-8 para soporte de caracteres especiales
+trim_trailing_whitespace = true   # Eliminar espacios al final de líneas
+insert_final_newline = true       # Archivos terminan con newline
+
+# Markdown — no trim trailing (líneas vacías = párrafos)
+[*.md]
+trim_trailing_whitespace = false
+
+# PHP — 4 espacios es el estándar PSR-12
+[*.php]
+indent_style = space
+indent_size = 4
+
+# YAML — 2 espacios (Symfony convention)
+[*.{yaml,yml}]
+indent_size = 2
+
+# JSON — 2 espacios
+[*.json]
+indent_size = 2
+
+# Dockerfile — 4 espacios
+[Dockerfile*]
+indent_size = 4
+
+# Makefile — tabs obligatorios (requisito de Make)
+[Makefile]
+indent_style = tab
+
+# Gherkin (.feature) — 2 espacios para steps anidados
+[*.feature]
+indent_size = 2
