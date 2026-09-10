@@ -18,38 +18,7 @@ A lo largo de este curso construimos **PrestaFlow**, una plataforma de pagos y
 préstamos compuesta por múltiples microservicios fintech. Cada parte añade
 capas de complejidad real sobre el mismo proyecto.
 
-```mermaid
-graph TD
-    APi["API Gateway<br/>Nginx"] --> WS["wallet-service<br/>PHP 8.3 / Symfony 7"]
-    WS --> LS["loan-service<br/>PHP 8.3"]
-    WS --> PG1[("PostgreSQL<br/>wallet_db")]
-    LS --> PG2[("PostgreSQL<br/>loan_db")]
-    WS --- RMQ["RabbitMQ Event Bus<br/>transactions · loans · notifications"]
-    RMQ --- LS
-    WS --- DD["Datadog APM<br/>Traces · Metrics · Logs"]
-    LS --- DD
-    style WS fill:#dbeafe,stroke:#1a56db,stroke-width:2px
-    style APi fill:#f0fdf4,stroke:#16a34a,stroke-width:2px
-    style LS fill:#fef3c7,stroke:#d97706,stroke-width:2px
-    style RMQ fill:#fce7f3,stroke:#db2777,stroke-width:2px
-    style DD fill:#ede9fe,stroke:#7c3aed,stroke-width:2px
-```
-
-## Stack tecnológico
-
-| Componente | Tecnología | Versión |
-|---|---|---|
-| Runtime | PHP | 8.3+ |
-| Framework | Symfony | 7.4 LTS |
-| Base de datos | PostgreSQL | 16 |
-| Mensajería | RabbitMQ | 3.13 |
-| Testing | PHPUnit 11 + Behat + Infection | — |
-| Containers | Docker + Compose | 24+ |
-| Orquestación | Kubernetes (Kind) | 1.30+ |
-| CI/CD | GitHub Actions | — |
-| Observabilidad | Datadog APM | Agent 7.x |
-
----
+Las tarjetas de cada parte enlazan a su página de inicio con todos sus ejercicios.
 
 ## El recorrido del curso
 
@@ -94,28 +63,3 @@ graph TD
   <p><em>Resultado: PrestaFlow desplegado y autoescalable, con pipeline automática.</em></p>
   <p><a href="/parte5/">Ver ejercicios →</a></p>
 </div>
-
----
-
-## Stack visual del curso
-
-```mermaid
-graph LR
-    subgraph "Parte 0-1: Fundamentos"
-        A[Docker] --> B[PHP 8.3]
-        B --> C[DDD]
-    end
-    subgraph "Parte 2-3: Aplicación"
-        C --> D[Symfony 7]
-        D --> E[CQRS]
-        E --> F[RabbitMQ]
-    end
-    subgraph "Parte 4-5: Producción"
-        F --> G[Testing]
-        G --> H[K8s + CI/CD]
-    end
-    style A fill:#dbeafe,stroke:#1a56db
-    style C fill:#f0fdf4,stroke:#16a34a
-    style F fill:#fef3c7,stroke:#d97706
-    style H fill:#fce7f3,stroke:#db2777
-```

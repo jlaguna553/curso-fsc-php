@@ -4,7 +4,7 @@
  *
  * Migra el contenido del curso (parte0–5) a formato Starlight.
  * - Lee parteN/README.md → genera src/content/docs/parteN/index.md
- * - Lee parteN/ejercicios/*.md → genera src/content/docs/parteN/X-name.mdx
+ * - Lee parteN/ejercicios/*.md → genera src/content/docs/parteN/X-name.md
  * - Reemplaza diagramas ASCII por bloques ```mermaid
  * - Añade frontmatter compatible con Starlight
  */
@@ -310,7 +310,7 @@ function migrateParte(parteName) {
         sidebar: { label: exTitle, order: idx + 1 }
       });
 
-      writeFileSync(join(outDir, `${slug}.mdx`), exFm + exContent);
+      writeFileSync(join(outDir, `${slug}.md`), exFm + exContent);
       pages.push(`${parteName}/${slug}`);
     });
   }
