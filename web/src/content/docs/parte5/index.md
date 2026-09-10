@@ -87,11 +87,11 @@ jobs:
   test:
     runs-on: ubuntu-latest
     services:
-      postgres: {'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'} image: postgres:16, env: {'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'} POSTGRES_PASSWORD: test {'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'} {'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
+      postgres: { image: postgres:16, env: { POSTGRES_PASSWORD: test } }
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
-        with: {'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'} php-version: '8.3', tools: composer {'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
+        with: { php-version: '8.3', tools: composer }
       - run: composer install --no-interaction
       - run: make test
 ```
@@ -107,8 +107,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: docker build -t ghcr.io/${'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'} github.repository {'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}/wallet-service .
-      - run: docker push ghcr.io/${'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'} github.repository {'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}/wallet-service
+      - run: docker build -t ghcr.io/${{ github.repository }}/wallet-service .
+      - run: docker push ghcr.io/${{ github.repository }}/wallet-service
       - uses: azure/setup-kubectl@v4
       - run: kubectl set image deployment/wallet-service ...
 ```

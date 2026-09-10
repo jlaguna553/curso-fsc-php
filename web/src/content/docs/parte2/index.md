@@ -122,13 +122,13 @@ graph LR
 **Éxito (201 Created):**
 
 ```json
-{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
+{
   "id": "550e8400-e29b-41d4-a716-446655440000",
   "usuario_id": "user_001",
   "moneda": "MXN",
   "saldo": "0.00",
   "creado_en": "2026-09-10T15:30:00+00:00"
-{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
+}
 ```mermaid
 graph LR
     subgraph Exterior["Exterior"]
@@ -177,13 +177,13 @@ graph LR
 # Crear billetera
 curl -s -X POST http://localhost:8080/api/v1/billeteras \
   -H "Content-Type: application/json" \
-  -d '{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}"usuario_id":"test","moneda":"MXN"{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}' | jq '.id'
+  -d '{"usuario_id":"test","moneda":"MXN"}' | jq '.id'
 # Debe retornar un UUID
 
 # Depositar
-curl -s -X POST http://localhost:8080/api/v1/billeteras/{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}id{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}/deposito \
+curl -s -X POST http://localhost:8080/api/v1/billeteras/{id}/deposito \
   -H "Content-Type: application/json" \
-  -d '{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}"monto":"1500.00","descripcion":"Test"{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}' | jq '.balance_nuevo'
+  -d '{"monto":"1500.00","descripcion":"Test"}' | jq '.balance_nuevo'
 # Debe retornar "1500.00"
 ```
 

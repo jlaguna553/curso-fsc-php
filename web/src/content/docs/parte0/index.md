@@ -98,10 +98,10 @@ que intercambian. JSON es el formato estándar porque:
 NUNCA envíes montos monetarios como floats en JSON:
 
 ```json
-{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
+{
   "monto": "1500.00",
   "moneda": "MXN"
-{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
+}
 ```
 
 **¿Por qué?** Porque los floats tienen precisión limitada:
@@ -126,23 +126,23 @@ Lo estudiaremos en detalle cuando construyamos el wallet-service en la Parte 1.
 **Request (lo que envía el cliente):**
 
 ```json
-{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
+{
   "monto": "1500.00",
   "moneda": "MXN",
   "tipo": "deposito",
   "billetera_id": "wallet_x1y2z3",
   "idempotency_key": "dep_unique_abc123",
-  "metadata": {'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
+  "metadata": {
     "origen": "transferencia_bancaria",
     "referencia": "REF-2026-001"
-  {'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
-{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
+  }
+}
 ```
 
 **Response exitosa (201 Created):**
 
 ```json
-{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
+{
   "id": "txn_a1b2c3d4e5",
   "estado": "completada",
   "monto": "1500.00",
@@ -153,23 +153,23 @@ Lo estudiaremos en detalle cuando construyamos el wallet-service en la Parte 1.
   "balance_nuevo": "6500.00",
   "creado_en": "2026-09-10T15:30:00Z",
   "procesado_en": "2026-09-10T15:30:01Z"
-{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
+}
 ```
 
 **Response de error (422 Unprocessable Entity):**
 
 ```json
-{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
-  "error": {'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
+{
+  "error": {
     "codigo": "FONDOS_INSUFICIENTES",
     "mensaje": "Saldo insuficiente para completar la transacción",
-    "detalle": {'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
+    "detalle": {
       "monto_solicitado": "5000.00",
       "saldo_disponible": "3200.00",
       "déficit": "1800.00"
-    {'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
-  {'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
-{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
+    }
+  }
+}
 ```
 
 ### Idempotencia: Protección contra Duplicados
@@ -341,7 +341,7 @@ bash parte0/scripts/doctor.sh
   ✓ PHP: 8.3.12 (cumple requisito ≥8.3)
   ✓ Composer: 2.7.8 (cumple requisito ≥2.7)
   ✓ Symfony CLI: 7.2.3
-  ✓ Git: 2.43.0 (user: Juan Laguna {'<'}juan@ejemplo.com>)
+  ✓ Git: 2.43.0 (user: Juan Laguna <juan@ejemplo.com>)
   ✓ Docker: 27.1.1 (daemon corriendo)
   ✓ Docker Compose: 2.29.1
 
@@ -351,15 +351,15 @@ bash parte0/scripts/doctor.sh
   Veredicto: READY — Tu entorno está listo para el curso.
 
 --- Salida JSON ---
-{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
-  "php": {'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'} "installed": true, "version": "8.3.12", "meets_requirement": true {'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'},
-  "composer": {'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'} "installed": true, "version": "2.7.8", "meets_requirement": true {'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'},
-  "symfony_cli": {'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'} "installed": true, "version": "7.2.3" {'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'},
-  "git": {'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'} "installed": true, "version": "2.43.0", "configured": true {'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'},
-  "docker": {'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'} "installed": true, "version": "27.1.1", "running": true {'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'},
-  "docker_compose": {'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'} "installed": true, "version": "2.29.1" {'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'},
+{
+  "php": { "installed": true, "version": "8.3.12", "meets_requirement": true },
+  "composer": { "installed": true, "version": "2.7.8", "meets_requirement": true },
+  "symfony_cli": { "installed": true, "version": "7.2.3" },
+  "git": { "installed": true, "version": "2.43.0", "configured": true },
+  "docker": { "installed": true, "version": "27.1.1", "running": true },
+  "docker_compose": { "installed": true, "version": "2.29.1" },
   "verdict": "READY"
-{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
+}
 ```
 
 ### Checkpoint 0.4 ✓
@@ -450,7 +450,7 @@ use PHPUnit\Framework\TestCase;
 // #[CoversClass] indica qué clase está siendo testeada (para cobertura).
 // PHPUnit no ejecuta métodos sin #[Test].
 final class MontoTest extends TestCase
-{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
+{
     // #[Test] → PHPUnit ejecutará este método como un caso de prueba
     #[Test]
     // #[DataProvider('montonPositivo')] → Vincula un DataProvider que
@@ -460,7 +460,7 @@ final class MontoTest extends TestCase
     // El método recibe un string (el monto) y un entero (centavos esperados).
     // Si el monto no es un número válido, PHPUnit lanzará error antes del assert.
     public function test_monto_valido_se_convierte_a_centavos(string $monto, int $centavosEsperados): void
-    {'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
+    {
         // Llamamos a la función que vamos a construir (TDD: primero el test)
         // Convierte un monto string a centavos integer
         $resultado = montoACentavos($monto);
@@ -468,14 +468,14 @@ final class MontoTest extends TestCase
         // assertEquals compara el resultado esperado con el obtenido.
         // Si no son iguales, PHPUnit muestra ambos valores y falla el test.
         $this->assertSame($centavosEsperados, $resultado);
-    {'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
+    }
 
     // DataProvider: retorna un array de arrays.
     // Cada sub-array = [monto_input, centavos_esperados]
     // PHPUnit ejecuta el test UNA VEZ por cada sub-array.
     // Esto reemplaza los test methods duplicados: test_monto_100, test_monto_50, etc.
     public static function montonPositivo(): array
-    {'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
+    {
         return [
             // [input_monto, centavos_esperados]
             // Un dólar = 100 centavos
@@ -487,14 +487,14 @@ final class MontoTest extends TestCase
             // Monto sin decimales
             ['10', 1000],
         ];
-    {'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
+    }
 
     // Test que verifica el comportamiento ante montos inválidos.
     // PHPUnit provee la aserciónexpectException() que VALIDA que se lance
     // una excepción específica. Si NO se lanza, el test FALLA.
     #[Test]
     public function test_monto_negativo_lanza_excepcion(): void
-    {'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
+    {
         // Indicamos que esperamos esta excepción específica
         // Si la función NO lanza la excepción → test FALLA
         // Si lanza OTRA excepción → test FALLA
@@ -502,8 +502,8 @@ final class MontoTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
 
         montoACentavos('-50.00');
-    {'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
-{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
+    }
+}
 ```
 
 **Salida al ejecutar (con el código implementado):**
@@ -546,7 +546,7 @@ declare(strict_types=1);
  * @throws \InvalidArgumentException Si el monto no es un número válido o es negativo
  */
 function montoACentavos(string $monto): int
-{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
+{
     // Verificar que el monto tenga un formato decimal válido.
     // filter_var con FILTER_VALIDATE_FLOAT valida que sea un número flotante.
     // Si no lo es, retorna false (que no es int, por eso !== false).
@@ -554,26 +554,26 @@ function montoACentavos(string $monto): int
 
     // Validación defensiva: si filter_var retorna false, el input es inválido.
     // Lanazmos la excepción con un mensaje descriptivo para debugging.
-    if ($valor === false) {'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
+    if ($valor === false) {
         throw new \InvalidArgumentException(
-            "Monto inválido: '{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}$monto{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}'. Se esperaba un número decimal."
+            "Monto inválido: '{$monto}'. Se esperaba un número decimal."
         );
-    {'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
+    }
 
     // Validar que el monto no sea negativo.
     // En finanzas, montos negativos tienen un significado diferente (cargo vs abono).
     // Esta función solo acepta montos positivos para depósitos.
-    if ($valor < 0) {'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
+    if ($valor < 0) {
         throw new \InvalidArgumentException(
-            "El monto no puede ser negativo: '{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}$monto{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}'"
+            "El monto no puede ser negativo: '{$monto}'"
         );
-    {'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
+    }
 
     // Multiplicar por 100 para convertir decimales a centavos.
     // round() evita errores de punto flotante: 1.005 * 100 = 100.4999... → 100
     // PHP_INT_MAX = 9223372036854775807, así que enteros hasta ~92 billones de centavos
     return (int) round($valor * 100);
-{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
+}
 ```
 
 **Salida al ejecutar:**
@@ -633,11 +633,11 @@ Los ejercicios consolidan lo aprendido. Cada uno tiene un entregable concreto.
 2. Realiza un POST al mismo endpoint con estos datos:
 
 ```json
-{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
+{
   "title": "Depósito inicial",
   "body": "Primera transacción de mi billetera",
   "userId": 42
-{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
+}
 ```
 
 3. Guarda la respuesta en `respuesta-post.json`.
@@ -701,7 +701,7 @@ sequenceDiagram
     participant MQ as RabbitMQ
     participant NS as Notification Service
 
-    C->>GW: POST /api/v1/transacciones {'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}monto: 1500, moneda: MXN{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
+    C->>GW: POST /api/v1/transacciones {monto: 1500, moneda: MXN}
     GW->>GW: Validar token JWT
     GW->>WS: Forward request
     WS->>DB: SELECT balance_actual WHERE billetera_id = ?
@@ -710,7 +710,7 @@ sequenceDiagram
     WS->>DB: INSERT transacción + UPDATE balance
     DB-->>WS: OK
     WS->>MQ: Publicar evento transaccion.completada
-    WS-->>GW: 201 Created {'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}id, balance_nuevo: 6500{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
+    WS-->>GW: 201 Created {id, balance_nuevo: 6500}
     GW-->>C: 201 Created
     MQ->>NS: Consumir evento transaccion.completada
     NS->>NS: Enviar email de confirmación
@@ -742,13 +742,13 @@ sudo apt install jq
 2. Crea un archivo `transaccion-request.json` con este contenido:
 
 ```json
-{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
+{
   "monto": "1500.00",
   "moneda": "MXN",
   "tipo": "deposito",
   "billetera_id": "wallet_x1y2z3",
   "idempotency_key": "dep_unique_abc123"
-{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
+}
 ```
 
 3. Escribe un script `validar-contrato.sh` que use `jq` para verificar:
@@ -769,7 +769,7 @@ sudo apt install jq
 bash validar-contrato.sh transaccion-request.json
 
 # Debe imprimir error por monto inválido
-echo '{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}"monto": 1500, "moneda": "MXN", "tipo": "deposito", "billetera_id": "w1", "idempotency_key": "k1"{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}' | bash validar-contrato.sh /dev/stdin
+echo '{"monto": 1500, "moneda": "MXN", "tipo": "deposito", "billetera_id": "w1", "idempotency_key": "k1"}' | bash validar-contrato.sh /dev/stdin
 # Salida: CONTRATO INVÁLIDO: monto debe ser string, no number
 ```
 
@@ -824,9 +824,9 @@ git commit -m "docs: crear archivo de bienvenida"
 ```php
 <?php
 // suma.php
-function sumar(int $a, int $b): int {'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
+function sumar(int $a, int $b): int {
     return $a + $b;
-{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
+}
 
 echo sumar(2, 3) . PHP_EOL;
 ```
@@ -843,13 +843,13 @@ require 'suma.php';
 $resultado = sumar(2, 3);
 $esperado = 5;
 
-if ($resultado === $esperado) {'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
-    echo "✓ Test pasó: sumar(2, 3) = {'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}$resultado{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}" . PHP_EOL;
+if ($resultado === $esperado) {
+    echo "✓ Test pasó: sumar(2, 3) = {$resultado}" . PHP_EOL;
     exit(0);
-{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'} else {'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
-    echo "✗ Test falló: esperaba {'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}$esperado{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}, obtuve {'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}$resultado{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}" . PHP_EOL;
+} else {
+    echo "✗ Test falló: esperaba {$esperado}, obtuve {$resultado}" . PHP_EOL;
     exit(1);
-{'{'}'{'{'}'{'}'}'{'{'}'{'}'}'{'}'}'{'{'}'{'}'}'{'}'}
+}
 ```
 
 5. Ejecuta el test y haz commit con el tipo `test`.

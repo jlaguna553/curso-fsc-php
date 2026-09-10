@@ -45,10 +45,10 @@ graph TB
 
 | Capa | Velocidad por test | Ejecuta en CI | ¿Qué derriba? |
 |---|---|---|---|
-| Unit | ~5 ms | cientos en &lt;1s | una regla de negocio |
-| Integration | ~50 ms | decenas en &lt;2s | una query o mapper |
-| Functional | ~200 ms | decenas en &lt;5s | un flujo HTTP completo |
-| E2E / Behat | ~1 s | pocos en &lt;30s | una historia de usuario |
+| Unit | ~5 ms | cientos en <1s | una regla de negocio |
+| Integration | ~50 ms | decenas en <2s | una query o mapper |
+| Functional | ~200 ms | decenas en <5s | un flujo HTTP completo |
+| E2E / Behat | ~1 s | pocos en <30s | una historia de usuario |
 
 ### La regla de oro: el 80% de tus tests deben ser unitarios
 
@@ -419,7 +419,7 @@ Código mutado:      if ($monto->centavos() !== 0) throw ...   ← mutante
 | Cobertura de `src/Domain` | 100% |
 | Cobertura de `src/Application` | ≥ 90% |
 | MSI de Infection | ≥ 80% |
-| Tests unitarios | todos verdes en &lt; 2s |
+| Tests unitarios | todos verdes en < 2s |
 
 ---
 

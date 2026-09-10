@@ -3,7 +3,7 @@
  * scripts/migrate.mjs
  *
  * Migra el contenido del curso (parte0–5) a formato Starlight.
- * - Lee parteN/README.md → genera src/content/docs/parteN/index.mdx
+ * - Lee parteN/README.md → genera src/content/docs/parteN/index.md
  * - Lee parteN/ejercicios/*.md → genera src/content/docs/parteN/X-name.mdx
  * - Reemplaza diagramas ASCII por bloques ```mermaid
  * - Añade frontmatter compatible con Starlight
@@ -284,8 +284,8 @@ function migrateParte(parteName) {
     sidebar: { order }
   });
 
-  writeFileSync(join(outDir, 'index.mdx'), frontmatter + content);
-  console.log(`✅ ${parteName}/index.mdx`);
+  writeFileSync(join(outDir, 'index.md'), frontmatter + content);
+  console.log(`✅ ${parteName}/index.md`);
 
   // Migrar ejercicios
   const pages = [`${parteName}/index`];
@@ -372,8 +372,8 @@ function migrateSoluciones(parteName) {
     md += `\`\`\`${lang}\n${file.content}\n\`\`\`\n\n`;
   }
 
-  writeFileSync(join(outDir, 'soluciones.mdx'), md);
-  console.log(`✅ ${parteName}/soluciones.mdx (${codeFiles.length} archivos)`);
+  writeFileSync(join(outDir, 'soluciones.md'), md);
+  console.log(`✅ ${parteName}/soluciones.md (${codeFiles.length} archivos)`);
 }
 
 // ─── Ejecutar ───
