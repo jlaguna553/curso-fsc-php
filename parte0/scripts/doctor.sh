@@ -49,25 +49,26 @@ print_check() {
   case "$status" in
     pass)
       echo -e "  ${GREEN}✓${NC} ${name}: ${message}"
-      ((PASS++))
+      PASS=$((PASS + 1))
       ;;
     fail)
       echo -e "  ${RED}✗${NC} ${name}: ${message}"
-      ((FAIL++))
+      FAIL=$((FAIL + 1))
       ;;
     warn)
       echo -e "  ${YELLOW}⚠${NC} ${name}: ${message}"
-      ((WARN++))
+      WARN=$((WARN + 1))
       ;;
   esac
 }
 
 # version_ge: compara dos versiones semánticas
 # Retorna 0 si $1 >= $2, 1 en caso contrario
-# Uso: version_ge "8.3.0" "8.3" → true
+# Uso: version_ge "8.3.6" "8.3.0" → true
 version_ge() {
-  # printf con -e ordena versiones correctamente usando sort -V
-  printf '%s\n%s' "$1" "$2" | sort -V -C
+  # sort -V -C comprueba si la entrada ya está en orden ascendente.
+  # Para verificar $1 >= $2, el menor de los dos ($2) debe ir primero.
+  printf '%s\n%s' "$2" "$1" | sort -V -C
 }
 
 # ==============================================================================
@@ -144,7 +145,7 @@ fi
 # Docker se usa a partir de la Parte 0 Lección 0.2 para la infraestructura.
 # Verificamos tanto la instalación como que el daemon esté corriendo.
 if command -v docker &> /dev/null; then
-  DOCKER_VERSION=$(docker --version 2>/dev/null | grep -oP '[\d]+\.[\d]+\.[\d]+')
+  DOCKER_VERSION=$(docker --version 2>/dev/null | grep -oP '[\d]+\.[\d]+\.[\d]+' | head -1)
 
   # Verificar que el daemon Docker esté corriendo
   if docker info &> /dev/null; then
