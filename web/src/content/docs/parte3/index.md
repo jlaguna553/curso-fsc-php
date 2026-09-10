@@ -260,27 +260,35 @@ RabbitMQ implementa AMQP. La unidad de enrutamiento es el **exchange**
 con una **routing key**. El exchange decide a qué colas (bindings) entrega
 el mensaje según el **tipo de exchange**.
 
-```
-Productor (wallet-service)
-   │  publica → exchange "prestaflow" (topic)
-   │           routing_key = "wallet.event.transaccion"
-   ▼
-┌──────────────────────┐
-│    prestaflow        │
-│     (topic)          │
-└──────┬──────────┬────┘
-       │          │
-  binding      binding
-  "wallet.     "wallet.
-   event.#"     event.#"
-       │          │
-       ▼          ▼
-┌────────────┐ ┌────────────┐
-│ wallet_    │ │ loan_      │
-│ events     │ │ events     │
-│ (wallet-   │ │ (loan-     │
-│  service)  │ │  service)  │
-└────────────┘ └────────────┘
+```mermaid
+graph LR
+    subgraph Wallet["wallet-service"]
+        PUB["Publisher"]
+    end
+    subgraph Exchange["Exchange prestaflow.events"]
+        EX["direct exchange"]
+    end
+    subgraph Colas["Colas"]
+        Q1["transactions"]
+        Q2["loans"]
+        Q3["notifications"]
+        Q4["dead-letter"]
+    end
+    subgraph Consumers["Consumidores"]
+        LOAN["loan-service"]
+        NOTIFY["notif-worker"]
+    end
+    PUB --> EX
+    EX --> Q1
+    EX --> Q2
+    EX --> Q3
+    Q1 --> LOAN
+    Q2 --> LOAN
+    Q3 --> NOTIFY
+    style EX fill:#fce7f3,stroke:#db2777
+    style Q1 fill:#fef3c7,stroke:#d97706
+    style Q2 fill:#fef3c7,stroke:#d97706
+    style Q3 fill:#fef3c7,stroke:#d97706
 ```
 
 | Exchange tipo | Routing | Uso |
